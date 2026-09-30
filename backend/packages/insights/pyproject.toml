@@ -1,0 +1,21 @@
+[project]
+name = "kharcha-insights"
+version = "0.1.0"
+description = "Kharcha insights: triggers (W3), forecast (W7), risk scoring and bandit (W18-19)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "kharcha-common",
+]
+
+[project.scripts]
+kharcha-insights = "kharcha_insights.main:run"
+
+[tool.uv.sources]
+kharcha-common = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/kharcha_insights"]

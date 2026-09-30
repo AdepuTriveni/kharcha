@@ -1,5 +1,6 @@
 """Pydantic event models: the single source of truth for event schemas (ADR-006)."""
 
+from kharcha_common.events.agents import AgentName, AgentTaskPayload, AgentTrigger, Priority
 from kharcha_common.events.base import SCHEMA_VERSION, CamelModel, EventEnvelope
 from kharcha_common.events.enums import (
     CashEntryType,
@@ -23,9 +24,14 @@ RawEvent = EventEnvelope[RawEventPayload]
 ParsedTransactionEvent = EventEnvelope[ParsedTransactionPayload]
 CleanTransactionEvent = EventEnvelope[CleanTransactionPayload]
 CashEvent = EventEnvelope[CashEventPayload]
+AgentTaskEvent = EventEnvelope[AgentTaskPayload]
 
 __all__ = [
     "SCHEMA_VERSION",
+    "AgentName",
+    "AgentTaskEvent",
+    "AgentTaskPayload",
+    "AgentTrigger",
     "CamelModel",
     "CashEntryType",
     "CashEvent",
@@ -40,6 +46,7 @@ __all__ = [
     "ParseMethod",
     "ParsedTransactionEvent",
     "ParsedTransactionPayload",
+    "Priority",
     "RawEvent",
     "RawEventPayload",
     "RawEventType",

@@ -20,7 +20,7 @@ from kharcha_common.events import (
     TxnKind,
     TxnStatus,
 )
-from kharcha_common.kafka import NAMESPACE_EVENTS
+from kharcha_common.ids import NAMESPACE_EVENTS
 
 
 def transaction_id_for(raw_event_id: str) -> str:

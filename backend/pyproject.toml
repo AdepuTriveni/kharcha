@@ -7,6 +7,8 @@ dependencies = [
     "kharcha-common",
     "kharcha-ingest-api",
     "kharcha-processor",
+    "kharcha-notifier",
+    "kharcha-insights",
     "alembic>=1.14",
 ]
 
@@ -23,6 +25,7 @@ dev = [
     "litellm>=1.55",
     "jsonschema>=4.23",
     "types-jsonschema",
+    "fakeredis>=2.26",
 ]
 
 [tool.uv]
@@ -35,6 +38,8 @@ members = ["packages/*"]
 kharcha-common = { workspace = true }
 kharcha-ingest-api = { workspace = true }
 kharcha-processor = { workspace = true }
+kharcha-notifier = { workspace = true }
+kharcha-insights = { workspace = true }
 
 # ---------------------------------------------------------------- ruff
 [tool.ruff]
@@ -53,7 +58,9 @@ ignore = [
 "**/tests/**" = ["S", "DTZ001"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["kharcha_common", "kharcha_ingest", "kharcha_processor"]
+known-first-party = [
+    "kharcha_common", "kharcha_ingest", "kharcha_processor", "kharcha_notifier", "kharcha_insights",
+]
 
 # ---------------------------------------------------------------- mypy
 [tool.mypy]

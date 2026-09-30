@@ -13,9 +13,11 @@ from kharcha_common.logging import configure_logging
 from kharcha_common.settings import Settings, get_settings
 from kharcha_common.topics import Topic
 from kharcha_processor.handlers import (
+    CASH_CONSUMER,
     PARSER_CONSUMER,
     WRITER_CONSUMER,
     ProcessorDeps,
+    handle_cash_event,
     handle_parsed_transaction,
     handle_raw_event,
 )
@@ -65,6 +67,22 @@ def build_broker(settings: Settings, teacher: Extractor | None = None) -> KafkaB
             key=_key(message),
             topic=Topic.PARSED_TRANSACTIONS,
             consumer=WRITER_CONSUMER,
+            publisher=publisher,
+        )
+
+    @broker.subscriber(
+        Topic.CASH_EVENTS,
+        group_id=CASH_CONSUMER,
+        auto_offset_reset="earliest",
+        ack_policy=AckPolicy.NACK_ON_ERROR,
+    )
+    async def on_cash(message: KafkaMessage) -> None:
+        await run_with_retry_and_dlt(
+            lambda body: handle_cash_event(body, deps),
+            body=message.body,
+            key=_key(message),
+            topic=Topic.CASH_EVENTS,
+            consumer=CASH_CONSUMER,
             publisher=publisher,
         )
 

@@ -12,6 +12,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from kharcha_common.events import (
+    AgentTaskEvent,
     CashEvent,
     CleanTransactionEvent,
     ParsedTransactionEvent,
@@ -23,6 +24,7 @@ EXPORTED: dict[str, type[BaseModel]] = {
     "parsed-transaction-event": ParsedTransactionEvent,
     "clean-transaction-event": CleanTransactionEvent,
     "cash-event": CashEvent,
+    "agent-task-event": AgentTaskEvent,
 }
 
 DEFAULT_OUT = Path(__file__).resolve().parents[4] / "schemas"

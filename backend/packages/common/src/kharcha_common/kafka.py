@@ -22,12 +22,11 @@ from tenacity import (
 )
 
 from kharcha_common.events.base import EventEnvelope
+from kharcha_common.ids import NAMESPACE_EVENTS
 from kharcha_common.settings import Settings
 from kharcha_common.topics import DLT_SUFFIX
 
 log = logging.getLogger(__name__)
-
-NAMESPACE_EVENTS = uuid.UUID("6f1d3c2a-5b7e-4c1d-9a8f-2e4b6c8d0a1f")
 
 
 class PermanentError(Exception):

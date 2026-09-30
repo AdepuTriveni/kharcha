@@ -1,0 +1,47 @@
+[
+  {
+    "name": "upi debit keeps amount, merchant VPA, ref and last 4",
+    "input": "Paid Rs.349.00 to zomato@hdfcbank from A/c XX1234. UPI Ref 412345678901",
+    "expected": "Paid Rs.349.00 to zomato@hdfcbank from A/c XX1234. UPI Ref 412345678901"
+  },
+  {
+    "name": "full account number is cut to last 4",
+    "input": "Rs 500 debited from A/c 50100123451234 on 03-10-26. Ref No 412345678901",
+    "expected": "Rs 500 debited from A/c XX1234 on 03-10-26. Ref No 412345678901"
+  },
+  {
+    "name": "card number is cut to last 4",
+    "input": "Txn of INR 1,249.50 on card 4321 5678 9012 3456 at AMAZON",
+    "expected": "Txn of INR 1,249.50 on card XX3456 at AMAZON"
+  },
+  {
+    "name": "phone numbers are masked",
+    "input": "Rs 200 sent to 9876543210. Call +91 9123456780 for help",
+    "expected": "Rs 200 sent to [phone]. Call [phone] for help"
+  },
+  {
+    "name": "email is masked",
+    "input": "Statement sent to ravi.kumar@gmail.com for Rs 10",
+    "expected": "Statement sent to [email] for Rs 10"
+  },
+  {
+    "name": "aadhaar and pan are masked",
+    "input": "KYC: Aadhaar 2345 6789 0123 and PAN ABCDE1234F verified",
+    "expected": "KYC: Aadhaar [aadhaar] and PAN [pan] verified"
+  },
+  {
+    "name": "other long digit runs are masked",
+    "input": "Customer id 123456789012 credited Rs 50",
+    "expected": "Customer id XX9012 credited Rs 50"
+  },
+  {
+    "name": "utr and rrn are kept",
+    "input": "INR 25,000.00 credited by NEFT UTR 123456789012345. RRN: 412345678901",
+    "expected": "INR 25,000.00 credited by NEFT UTR 123456789012345. RRN: 412345678901"
+  },
+  {
+    "name": "amounts in Indian grouping are kept",
+    "input": "Rs.1,00,000 credited to A/c **5678",
+    "expected": "Rs.1,00,000 credited to A/c **5678"
+  }
+]

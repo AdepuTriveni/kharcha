@@ -18,11 +18,17 @@
 
 ## Phase 1 — Usable by me
 - [ ] W1 Capture + basic redaction + Room outbox + list screen
+  - [x] code written (capture service, SMS receiver in sideload, redactor + corpus, outbox, uploader, screens)
+  - [ ] first Gradle build + unit tests green; test on phone
 - [ ] W2 Upload API + raw-events + teacher-LLM parser + validation + IT test
   - [x] backend: `/v1/events:batch`, pre-filter, teacher LLM, §10.2 validation, DLT, transactions, e2e IT
   - [ ] Android WorkManager uploader (with W1)
   - [ ] "real payment -> correct row" on a phone
 - [ ] W3 Telegram bot, daily summary, first trigger, chat cash entry
+  - [x] code: notifier (bot, link codes, /summary /cash /undo /level /budget, cash confirm + Undo,
+        daily summary, policy gate v0, coach v0), insights triggers, processor cash parser + ledger
+  - [x] unit tests (cash parser, grounding, policy, texts)
+  - [ ] integration tests (bot flows, triggers -> coach -> Telegram) ; update §7 for new triggers
 - [ ] ✅ Using it daily
 
 ## Phase 2 — Correct data
@@ -87,5 +93,8 @@
 - W2: integration tests start Kafka from `apache/kafka:4.0.0` (same as compose) instead of
   testcontainers' cp-kafka module.
 - YOU: `ollama pull qwen2.5:1.5b`, then check real parsing quality with a few of your own messages.
-- YOU: finish Android Studio first-run setup so the SDK is downloaded (needed for W1).
+- YOU: create a Telegram bot with @BotFather and put the token in backend/.env as KHARCHA_TELEGRAM_BOT_TOKEN.
+- W3 decisions: added BUDGET/FREQUENCY/BROKE_DATE_MOVED triggers + `dedupeKey` to AgentTaskPayload;
+  temporary coach consumer in notifier until W8; notifier listens to cash-events for confirmations;
+  thin httpx Telegram client (ADR-010 to write).
 - Phase 0: Temporal runs the dev server (SQLite) locally; the Helm chart is used in Phase 9.

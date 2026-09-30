@@ -36,6 +36,12 @@ class Settings(BaseSettings):
 
     metrics_port: int = 8001
 
+    # Telegram (§25). Local: long polling. Token from BotFather, never committed.
+    telegram_bot_token: str | None = None
+    telegram_api_base: str = "https://api.telegram.org"
+    daily_summary_time: str = "21:30"  # IST, before default quiet hours
+    coach_llm_enabled: bool = True
+
     @model_validator(mode="after")
     def _prod_needs_explicit_config(self) -> Self:
         if self.env == "prod" and self.database_url == _LOCAL_DATABASE_URL:

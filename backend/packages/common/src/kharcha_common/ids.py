@@ -4,6 +4,9 @@ import secrets
 import time
 import uuid
 
+# Namespace for deterministic (UUIDv5) ids derived from other event ids.
+NAMESPACE_EVENTS = uuid.UUID("6f1d3c2a-5b7e-4c1d-9a8f-2e4b6c8d0a1f")
+
 
 def uuid7(unix_ms: int | None = None) -> uuid.UUID:
     """Generate a UUIDv7: 48-bit Unix ms timestamp, version 7, variant 10, 74 random bits."""

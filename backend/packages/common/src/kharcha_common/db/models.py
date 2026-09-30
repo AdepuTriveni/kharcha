@@ -77,6 +77,42 @@ class TransactionRow(Base):
     updated_at: Mapped[datetime] = mapped_column(TZ, server_default="now()")
 
 
+class CashLedgerRow(Base):
+    __tablename__ = "cash_ledger"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    user_id: Mapped[str] = mapped_column(Text, ForeignKey("users.id"))
+    entry_type: Mapped[str] = mapped_column(Text)
+    amount_paise: Mapped[int] = mapped_column(BigInteger)
+    category: Mapped[str | None] = mapped_column(Text)
+    note: Mapped[str | None] = mapped_column(Text)
+    related_transaction_id: Mapped[str | None] = mapped_column(Text, ForeignKey("transactions.id"))
+    occurred_at: Mapped[datetime] = mapped_column(TZ)
+    prompted: Mapped[bool] = mapped_column(Boolean, server_default="false")
+
+
+class Budget(Base):
+    __tablename__ = "budgets"
+
+    user_id: Mapped[str] = mapped_column(Text, ForeignKey("users.id"), primary_key=True)
+    category: Mapped[str] = mapped_column(Text, primary_key=True)
+    monthly_limit_paise: Mapped[int] = mapped_column(BigInteger)
+
+
+class AlertSent(Base):
+    __tablename__ = "alerts_sent"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    user_id: Mapped[str] = mapped_column(Text, ForeignKey("users.id"))
+    alert_type: Mapped[str] = mapped_column(Text)
+    text: Mapped[str] = mapped_column(Text)
+    dedupe_key: Mapped[str | None] = mapped_column(Text)
+    agent_run_id: Mapped[str | None] = mapped_column(Text)
+    nudge_decision_id: Mapped[str | None] = mapped_column(Text)
+    sent_at: Mapped[datetime | None] = mapped_column(TZ)
+    status: Mapped[str] = mapped_column(Text)
+
+
 class TransactionSource(Base):
     __tablename__ = "transaction_sources"
 

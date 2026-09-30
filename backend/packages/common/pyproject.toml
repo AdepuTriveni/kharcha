@@ -12,6 +12,7 @@ dependencies = [
     "faststream[confluent]>=0.7",
     "tenacity>=9.0",
     "prometheus-client>=0.21",
+    "redis>=5.2",
 ]
 
 [build-system]

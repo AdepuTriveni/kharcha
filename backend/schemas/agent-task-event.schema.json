@@ -1,0 +1,174 @@
+{
+  "$defs": {
+    "AgentName": {
+      "enum": [
+        "COACH",
+        "CASH_DETECTIVE",
+        "REFUND_ADVOCATE",
+        "MEMORY_KEEPER"
+      ],
+      "title": "AgentName",
+      "type": "string"
+    },
+    "AgentTaskPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "agent": {
+          "$ref": "#/$defs/AgentName"
+        },
+        "banditDecision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Banditdecision"
+        },
+        "contextRefs": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": "Contextrefs",
+          "type": "object"
+        },
+        "deadline": {
+          "format": "date-time",
+          "title": "Deadline",
+          "type": "string"
+        },
+        "dedupeKey": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dedupekey"
+        },
+        "goal": {
+          "title": "Goal",
+          "type": "string"
+        },
+        "priority": {
+          "$ref": "#/$defs/Priority",
+          "default": "NORMAL"
+        },
+        "taskId": {
+          "title": "Taskid",
+          "type": "string"
+        },
+        "trigger": {
+          "$ref": "#/$defs/AgentTrigger"
+        }
+      },
+      "required": [
+        "taskId",
+        "agent",
+        "trigger",
+        "goal",
+        "deadline"
+      ],
+      "title": "AgentTaskPayload",
+      "type": "object"
+    },
+    "AgentTrigger": {
+      "enum": [
+        "WEEKLY_REVIEW",
+        "RISK_MOMENT",
+        "MISSING_CASH",
+        "REFUND_OVERDUE",
+        "FEEDBACK",
+        "USER_MESSAGE",
+        "BUDGET",
+        "FREQUENCY",
+        "BROKE_DATE_MOVED"
+      ],
+      "title": "AgentTrigger",
+      "type": "string"
+    },
+    "Priority": {
+      "enum": [
+        "LOW",
+        "NORMAL",
+        "HIGH"
+      ],
+      "title": "Priority",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "causationId": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Causationid"
+    },
+    "eventId": {
+      "title": "Eventid",
+      "type": "string"
+    },
+    "occurredAt": {
+      "format": "date-time",
+      "title": "Occurredat",
+      "type": "string"
+    },
+    "payload": {
+      "$ref": "#/$defs/AgentTaskPayload"
+    },
+    "producedAt": {
+      "format": "date-time",
+      "title": "Producedat",
+      "type": "string"
+    },
+    "producer": {
+      "minLength": 1,
+      "title": "Producer",
+      "type": "string"
+    },
+    "schemaVersion": {
+      "default": 1,
+      "title": "Schemaversion",
+      "type": "integer"
+    },
+    "type": {
+      "minLength": 1,
+      "title": "Type",
+      "type": "string"
+    },
+    "userId": {
+      "minLength": 1,
+      "title": "Userid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "userId",
+    "type",
+    "occurredAt",
+    "producer",
+    "payload"
+  ],
+  "title": "EventEnvelope[AgentTaskPayload]",
+  "type": "object"
+}

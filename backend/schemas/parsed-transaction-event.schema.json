@@ -1,0 +1,261 @@
+{
+  "$defs": {
+    "Channel": {
+      "enum": [
+        "UPI",
+        "CARD",
+        "ATM",
+        "NETBANKING",
+        "WALLET",
+        "CASH",
+        "UNKNOWN"
+      ],
+      "title": "Channel",
+      "type": "string"
+    },
+    "Direction": {
+      "enum": [
+        "DEBIT",
+        "CREDIT"
+      ],
+      "title": "Direction",
+      "type": "string"
+    },
+    "ParseMethod": {
+      "enum": [
+        "RULE",
+        "DEVICE_MODEL",
+        "SERVER_MODEL",
+        "TEACHER_LLM"
+      ],
+      "title": "ParseMethod",
+      "type": "string"
+    },
+    "ParsedTransactionPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "accountHint": {
+          "anyOf": [
+            {
+              "maxLength": 4,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Accounthint"
+        },
+        "amountPaise": {
+          "description": "Positive amount in paise",
+          "exclusiveMinimum": 0,
+          "title": "Amountpaise",
+          "type": "integer"
+        },
+        "balanceAfterPaise": {
+          "anyOf": [
+            {
+              "description": "Amount in paise (1 rupee = 100 paise)",
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Balanceafterpaise"
+        },
+        "channel": {
+          "$ref": "#/$defs/Channel"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "counterpartyVpa": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Counterpartyvpa"
+        },
+        "currency": {
+          "default": "INR",
+          "title": "Currency",
+          "type": "string"
+        },
+        "direction": {
+          "$ref": "#/$defs/Direction"
+        },
+        "merchantRaw": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Merchantraw"
+        },
+        "modelVersion": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Modelversion"
+        },
+        "parseMethod": {
+          "$ref": "#/$defs/ParseMethod"
+        },
+        "promisedRefundDays": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Promisedrefunddays"
+        },
+        "rawEventId": {
+          "title": "Raweventid",
+          "type": "string"
+        },
+        "referenceId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Referenceid"
+        },
+        "ruleId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ruleid"
+        },
+        "status": {
+          "$ref": "#/$defs/TxnStatus"
+        },
+        "txnTime": {
+          "format": "date-time",
+          "title": "Txntime",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rawEventId",
+        "amountPaise",
+        "direction",
+        "channel",
+        "status",
+        "txnTime",
+        "parseMethod",
+        "confidence"
+      ],
+      "title": "ParsedTransactionPayload",
+      "type": "object"
+    },
+    "TxnStatus": {
+      "enum": [
+        "SUCCESS",
+        "FAILED",
+        "PENDING",
+        "REVERSED",
+        "REFUND_INITIATED"
+      ],
+      "title": "TxnStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "causationId": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Causationid"
+    },
+    "eventId": {
+      "title": "Eventid",
+      "type": "string"
+    },
+    "occurredAt": {
+      "format": "date-time",
+      "title": "Occurredat",
+      "type": "string"
+    },
+    "payload": {
+      "$ref": "#/$defs/ParsedTransactionPayload"
+    },
+    "producedAt": {
+      "format": "date-time",
+      "title": "Producedat",
+      "type": "string"
+    },
+    "producer": {
+      "minLength": 1,
+      "title": "Producer",
+      "type": "string"
+    },
+    "schemaVersion": {
+      "default": 1,
+      "title": "Schemaversion",
+      "type": "integer"
+    },
+    "type": {
+      "minLength": 1,
+      "title": "Type",
+      "type": "string"
+    },
+    "userId": {
+      "minLength": 1,
+      "title": "Userid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "userId",
+    "type",
+    "occurredAt",
+    "producer",
+    "payload"
+  ],
+  "title": "EventEnvelope[ParsedTransactionPayload]",
+  "type": "object"
+}

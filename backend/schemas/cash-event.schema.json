@@ -1,0 +1,131 @@
+{
+  "$defs": {
+    "CashEntryType": {
+      "enum": [
+        "ATM_WITHDRAWAL",
+        "CASH_RECEIVED",
+        "CASH_SPEND",
+        "UNACCOUNTED"
+      ],
+      "title": "CashEntryType",
+      "type": "string"
+    },
+    "CashEventPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "amountPaise": {
+          "description": "Positive amount in paise",
+          "exclusiveMinimum": 0,
+          "title": "Amountpaise",
+          "type": "integer"
+        },
+        "category": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Category"
+        },
+        "entryType": {
+          "$ref": "#/$defs/CashEntryType"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "relatedTransactionId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Relatedtransactionid"
+        }
+      },
+      "required": [
+        "entryType",
+        "amountPaise"
+      ],
+      "title": "CashEventPayload",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "causationId": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Causationid"
+    },
+    "eventId": {
+      "title": "Eventid",
+      "type": "string"
+    },
+    "occurredAt": {
+      "format": "date-time",
+      "title": "Occurredat",
+      "type": "string"
+    },
+    "payload": {
+      "$ref": "#/$defs/CashEventPayload"
+    },
+    "producedAt": {
+      "format": "date-time",
+      "title": "Producedat",
+      "type": "string"
+    },
+    "producer": {
+      "minLength": 1,
+      "title": "Producer",
+      "type": "string"
+    },
+    "schemaVersion": {
+      "default": 1,
+      "title": "Schemaversion",
+      "type": "integer"
+    },
+    "type": {
+      "minLength": 1,
+      "title": "Type",
+      "type": "string"
+    },
+    "userId": {
+      "minLength": 1,
+      "title": "Userid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "userId",
+    "type",
+    "occurredAt",
+    "producer",
+    "payload"
+  ],
+  "title": "EventEnvelope[CashEventPayload]",
+  "type": "object"
+}

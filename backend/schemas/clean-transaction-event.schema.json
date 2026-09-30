@@ -1,0 +1,200 @@
+{
+  "$defs": {
+    "CleanTransactionPayload": {
+      "additionalProperties": false,
+      "description": "Consumers upsert by ``transactionId`` + ``version``.",
+      "properties": {
+        "amountPaise": {
+          "description": "Positive amount in paise",
+          "exclusiveMinimum": 0,
+          "title": "Amountpaise",
+          "type": "integer"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "direction": {
+          "$ref": "#/$defs/Direction"
+        },
+        "isEssential": {
+          "title": "Isessential",
+          "type": "boolean"
+        },
+        "kind": {
+          "$ref": "#/$defs/TxnKind"
+        },
+        "merchantId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Merchantid"
+        },
+        "merchantName": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Merchantname"
+        },
+        "referenceId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Referenceid"
+        },
+        "sourceEventIds": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Sourceeventids",
+          "type": "array"
+        },
+        "status": {
+          "$ref": "#/$defs/TxnStatus"
+        },
+        "transactionId": {
+          "title": "Transactionid",
+          "type": "string"
+        },
+        "txnTime": {
+          "format": "date-time",
+          "title": "Txntime",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "transactionId",
+        "amountPaise",
+        "direction",
+        "kind",
+        "status",
+        "category",
+        "isEssential",
+        "txnTime",
+        "sourceEventIds",
+        "version"
+      ],
+      "title": "CleanTransactionPayload",
+      "type": "object"
+    },
+    "Direction": {
+      "enum": [
+        "DEBIT",
+        "CREDIT"
+      ],
+      "title": "Direction",
+      "type": "string"
+    },
+    "TxnKind": {
+      "enum": [
+        "SPEND",
+        "INCOME",
+        "SELF_TRANSFER",
+        "REFUND",
+        "REVERSAL",
+        "COMPENSATION",
+        "ATM_WITHDRAWAL",
+        "CASH_SPEND",
+        "CASH_IN",
+        "UNACCOUNTED_CASH"
+      ],
+      "title": "TxnKind",
+      "type": "string"
+    },
+    "TxnStatus": {
+      "enum": [
+        "SUCCESS",
+        "FAILED",
+        "PENDING",
+        "REVERSED",
+        "REFUND_INITIATED"
+      ],
+      "title": "TxnStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "causationId": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Causationid"
+    },
+    "eventId": {
+      "title": "Eventid",
+      "type": "string"
+    },
+    "occurredAt": {
+      "format": "date-time",
+      "title": "Occurredat",
+      "type": "string"
+    },
+    "payload": {
+      "$ref": "#/$defs/CleanTransactionPayload"
+    },
+    "producedAt": {
+      "format": "date-time",
+      "title": "Producedat",
+      "type": "string"
+    },
+    "producer": {
+      "minLength": 1,
+      "title": "Producer",
+      "type": "string"
+    },
+    "schemaVersion": {
+      "default": 1,
+      "title": "Schemaversion",
+      "type": "integer"
+    },
+    "type": {
+      "minLength": 1,
+      "title": "Type",
+      "type": "string"
+    },
+    "userId": {
+      "minLength": 1,
+      "title": "Userid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "userId",
+    "type",
+    "occurredAt",
+    "producer",
+    "payload"
+  ],
+  "title": "EventEnvelope[CleanTransactionPayload]",
+  "type": "object"
+}

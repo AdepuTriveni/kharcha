@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.hypothesis/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Secrets / local config (rule 11: no secrets in git)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+google-services.json
+service-account*.json
+
+# ML data and artifacts (real data never committed; ml/data/samples/ is synthetic only)
+ml/data/*
+!ml/data/samples/
+*.gguf
+*.onnx
+*.safetensors
+*.bin
+
+# Android
+android-app/.gradle/
+android-app/build/
+android-app/app/build/
+android-app/local.properties
+*.apk
+*.aab
+
+# Infra
+infra/terraform/.terraform/
+*.tfstate
+*.tfstate.*
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

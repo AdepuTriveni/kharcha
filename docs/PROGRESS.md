@@ -1,0 +1,80 @@
+# Kharcha — Progress Tracker (v3, all-Python backend)
+
+> Tick a box only when the "Done when" criteria in `PROJECT_SPEC.md` §34 pass.
+> Claude Code: update this file after each task; record deferred items at the bottom.
+
+## Prerequisites (§33.1)
+- [ ] Laptop tools installed (Python 3.12 + uv, Docker, Android Studio, Ollama, Git, Claude Code)
+- [ ] Accounts: GitHub, Telegram bot, Firebase, Kaggle/Colab, cloud free tier, free LLM API key, Langfuse
+- [ ] Test phone ready (Android 10+)
+
+## Phase 0 — Setup
+- [x] Repo skeleton + uv workspace (common, ingest_api)
+- [x] docker-compose + topic init script
+- [x] Alembic 0001_core
+- [ ] CI: ruff, mypy, pytest (backend + ml), Android build
+- [ ] Ollama smoke test via LiteLLM
+- [x] `ml/` separate uv project skeleton
+
+## Phase 1 — Usable by me
+- [ ] W1 Capture + basic redaction + Room outbox + list screen
+- [ ] W2 Upload API + raw-events + teacher-LLM parser + validation + IT test
+- [ ] W3 Telegram bot, daily summary, first trigger, chat cash entry
+- [ ] ✅ Using it daily
+
+## Phase 2 — Correct data
+- [ ] W4 Dedup, merchants, categories, labeling CLI, first parsing eval
+- [ ] W5 Rules + synthesis + shadow + DLTs + metrics
+- [ ] W6 Cash wallet, quick-add, widget, redaction corpus, corrections
+
+## Phase 3 — Forecast, harness, friends
+- [ ] W7 Forecast + what-if + backtest
+- [ ] W8 Agent runtime (limits, permissions, transcripts, grounding, replay) + Coach v1 + policy gate
+- [ ] W9 Firebase auth + import-linter contracts + early cloud deploy + friends onboarded with consent
+
+## Phase 4 — Own model (Pillar 1)
+- [ ] W10 Synthetic generator, distillation, review queue, template splits, dataset card, leakage test
+- [ ] W11 Base-model comparison, LoRA fine-tune, five-way eval report
+- [ ] W12 GGUF + quantization, Ollama tier 3, Android llama.cpp + constrained decoding, shadow rollout
+- [ ] ✅ Model passes promotion gate and runs on phone
+
+## Phase 5 — Multi-agent + MCP + memory (Pillars 2 & 5)
+- [ ] W13 Four MCP servers + scoped tokens + permission tests; Coach on MCP; external MCP tokens
+- [ ] W14 agent-tasks/results, orchestrator, Cash Detective, Memory Keeper skeleton
+- [ ] W15 pgvector memory read/write, memory UI/commands, commitments, memory eval
+
+## Phase 6 — Ask Kharcha + multimodal (Pillars 3 & 6)
+- [ ] W16 Analyst views + RLS, SQL validator, tools, charts, /v1/ask, Telegram /ask, app chat
+- [ ] W17 120-question eval + improvement loop; bill photo; Hinglish voice + evals
+
+## Phase 7 — Prediction + bandit (Pillar 4)
+- [ ] W18 Risk features, LightGBM, ONNX export, onnxruntime scoring, calibration report
+- [ ] W19 Thompson sampling + constraints + propensities + rewards + IPS evaluation
+
+## Phase 8 — Refund Watchdog
+- [ ] refund-rules.yaml verified against latest RBI circular (date: ____)
+- [ ] RefundCaseWorkflow + time-skipping tests
+- [ ] Refund Advocate drafts + screens
+
+## Phase 9 — Production cloud and scale
+- [ ] W21 Terraform, k3s, Strimzi, Postgres, Redis, Temporal, Ollama, CD, dashboards, CI eval gates
+- [ ] W22 Locust load test report; chaos 0 lost / 0 duplicated
+
+## Phase 10 — Proof and presentation
+- [ ] §32 metrics table filled with real numbers
+- [ ] Competitor comparison table in README
+- [ ] Design doc + ADRs (§35)
+- [ ] Demo video
+- [ ] (Optional) Blog post + Hugging Face model card
+
+## Notes / deferred items
+- Phase 0: event models cover the Phase 1 pipeline only (envelope, raw, parsed, clean, cash).
+  AgentTask/AgentResult/UserFeedback/NudgeOutcome payloads are added in their phases, because
+  §7.3 leaves parts of them loose (`memoryWrites: [..]`, `drafts: [..]`).
+- Phase 0: SQLAlchemy ORM models are added per table when a service first uses them (W2);
+  Alembic `0001_core` is the schema source.
+- Phase 0: Android CI job skips until `android-app/gradlew` exists (W1).
+- Phase 0: kafka-ui, Temporal, Prometheus and Grafana images use `latest`; pin tags in Phase 9.
+- Phase 0: CI workflow written; tick after its first green run on GitHub.
+- Phase 0: LLM smoke test skips until `ollama pull qwen2.5:1.5b` is done.
+- Phase 0: Temporal runs the dev server (SQLite) locally; the Helm chart is used in Phase 9.

@@ -1,0 +1,263 @@
+{
+  "$defs": {
+    "Channel": {
+      "enum": [
+        "UPI",
+        "CARD",
+        "ATM",
+        "NETBANKING",
+        "WALLET",
+        "CASH",
+        "UNKNOWN"
+      ],
+      "title": "Channel",
+      "type": "string"
+    },
+    "DeviceParse": {
+      "additionalProperties": false,
+      "description": "Optional on-device model output. The server re-validates it; server result wins.",
+      "properties": {
+        "latencyMs": {
+          "minimum": 0,
+          "title": "Latencyms",
+          "type": "integer"
+        },
+        "modelVersion": {
+          "title": "Modelversion",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/DeviceParseResult"
+        }
+      },
+      "required": [
+        "modelVersion",
+        "result",
+        "latencyMs"
+      ],
+      "title": "DeviceParse",
+      "type": "object"
+    },
+    "DeviceParseResult": {
+      "additionalProperties": false,
+      "properties": {
+        "amountPaise": {
+          "description": "Positive amount in paise",
+          "exclusiveMinimum": 0,
+          "title": "Amountpaise",
+          "type": "integer"
+        },
+        "channel": {
+          "$ref": "#/$defs/Channel"
+        },
+        "direction": {
+          "$ref": "#/$defs/Direction"
+        },
+        "merchantRaw": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Merchantraw"
+        },
+        "referenceId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Referenceid"
+        },
+        "status": {
+          "$ref": "#/$defs/TxnStatus"
+        }
+      },
+      "required": [
+        "amountPaise",
+        "direction",
+        "channel",
+        "status"
+      ],
+      "title": "DeviceParseResult",
+      "type": "object"
+    },
+    "Direction": {
+      "enum": [
+        "DEBIT",
+        "CREDIT"
+      ],
+      "title": "Direction",
+      "type": "string"
+    },
+    "RawEventPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "deviceId": {
+          "title": "Deviceid",
+          "type": "string"
+        },
+        "deviceParse": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DeviceParse"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "postedAt": {
+          "format": "date-time",
+          "title": "Postedat",
+          "type": "string"
+        },
+        "redacted": {
+          "title": "Redacted",
+          "type": "boolean"
+        },
+        "replay": {
+          "default": false,
+          "title": "Replay",
+          "type": "boolean"
+        },
+        "sender": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sender"
+        },
+        "sourceApp": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sourceapp"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        }
+      },
+      "required": [
+        "postedAt",
+        "deviceId",
+        "redacted"
+      ],
+      "title": "RawEventPayload",
+      "type": "object"
+    },
+    "TxnStatus": {
+      "enum": [
+        "SUCCESS",
+        "FAILED",
+        "PENDING",
+        "REVERSED",
+        "REFUND_INITIATED"
+      ],
+      "title": "TxnStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "causationId": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Causationid"
+    },
+    "eventId": {
+      "title": "Eventid",
+      "type": "string"
+    },
+    "occurredAt": {
+      "format": "date-time",
+      "title": "Occurredat",
+      "type": "string"
+    },
+    "payload": {
+      "$ref": "#/$defs/RawEventPayload"
+    },
+    "producedAt": {
+      "format": "date-time",
+      "title": "Producedat",
+      "type": "string"
+    },
+    "producer": {
+      "minLength": 1,
+      "title": "Producer",
+      "type": "string"
+    },
+    "schemaVersion": {
+      "default": 1,
+      "title": "Schemaversion",
+      "type": "integer"
+    },
+    "type": {
+      "minLength": 1,
+      "title": "Type",
+      "type": "string"
+    },
+    "userId": {
+      "minLength": 1,
+      "title": "Userid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "userId",
+    "type",
+    "occurredAt",
+    "producer",
+    "payload"
+  ],
+  "title": "EventEnvelope[RawEventPayload]",
+  "type": "object"
+}

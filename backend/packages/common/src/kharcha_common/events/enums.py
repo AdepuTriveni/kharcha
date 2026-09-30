@@ -1,0 +1,62 @@
+"""Enums from PROJECT_SPEC §7.3."""
+
+from enum import StrEnum
+
+
+class RawEventType(StrEnum):
+    RAW_NOTIFICATION = "RAW_NOTIFICATION"
+    RAW_SMS = "RAW_SMS"
+    MANUAL_TEXT = "MANUAL_TEXT"
+    MANUAL_VOICE = "MANUAL_VOICE"
+    WIDGET_TAP = "WIDGET_TAP"
+    BILL_PHOTO = "BILL_PHOTO"
+
+
+class Direction(StrEnum):
+    DEBIT = "DEBIT"
+    CREDIT = "CREDIT"
+
+
+class Channel(StrEnum):
+    UPI = "UPI"
+    CARD = "CARD"
+    ATM = "ATM"
+    NETBANKING = "NETBANKING"
+    WALLET = "WALLET"
+    CASH = "CASH"
+    UNKNOWN = "UNKNOWN"
+
+
+class TxnStatus(StrEnum):
+    SUCCESS = "SUCCESS"
+    FAILED = "FAILED"
+    PENDING = "PENDING"
+    REVERSED = "REVERSED"
+    REFUND_INITIATED = "REFUND_INITIATED"
+
+
+class ParseMethod(StrEnum):
+    RULE = "RULE"
+    DEVICE_MODEL = "DEVICE_MODEL"
+    SERVER_MODEL = "SERVER_MODEL"
+    TEACHER_LLM = "TEACHER_LLM"
+
+
+class TxnKind(StrEnum):
+    SPEND = "SPEND"
+    INCOME = "INCOME"
+    SELF_TRANSFER = "SELF_TRANSFER"
+    REFUND = "REFUND"
+    REVERSAL = "REVERSAL"
+    COMPENSATION = "COMPENSATION"
+    ATM_WITHDRAWAL = "ATM_WITHDRAWAL"
+    CASH_SPEND = "CASH_SPEND"
+    CASH_IN = "CASH_IN"
+    UNACCOUNTED_CASH = "UNACCOUNTED_CASH"
+
+
+class CashEntryType(StrEnum):
+    ATM_WITHDRAWAL = "ATM_WITHDRAWAL"
+    CASH_RECEIVED = "CASH_RECEIVED"
+    CASH_SPEND = "CASH_SPEND"
+    UNACCOUNTED = "UNACCOUNTED"

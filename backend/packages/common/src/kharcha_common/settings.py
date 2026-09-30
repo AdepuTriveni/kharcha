@@ -28,6 +28,13 @@ class Settings(BaseSettings):
     # LiteLLM model string; local default is a small Ollama model.
     llm_model: str = "ollama/qwen2.5:1.5b"
     ollama_api_base: str = "http://localhost:11434"
+    llm_timeout_s: float = 60.0
+
+    # Phase 1 auth: static per-user API keys, stored as {sha256(key) hex: user_id}.
+    # Generate with `uv run kharcha-admin create-user`. Replaced by Firebase in W9.
+    api_keys: dict[str, str] = {}
+
+    metrics_port: int = 8001
 
     @model_validator(mode="after")
     def _prod_needs_explicit_config(self) -> Self:

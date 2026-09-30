@@ -19,6 +19,9 @@
 ## Phase 1 — Usable by me
 - [ ] W1 Capture + basic redaction + Room outbox + list screen
 - [ ] W2 Upload API + raw-events + teacher-LLM parser + validation + IT test
+  - [x] backend: `/v1/events:batch`, pre-filter, teacher LLM, §10.2 validation, DLT, transactions, e2e IT
+  - [ ] Android WorkManager uploader (with W1)
+  - [ ] "real payment -> correct row" on a phone
 - [ ] W3 Telegram bot, daily summary, first trigger, chat cash entry
 - [ ] ✅ Using it daily
 
@@ -77,4 +80,12 @@
 - Phase 0: kafka-ui, Temporal, Prometheus and Grafana images use `latest`; pin tags in Phase 9.
 - Phase 0: CI workflow written; tick after its first green run on GitHub.
 - Phase 0: LLM smoke test skips until `ollama pull qwen2.5:1.5b` is done.
+- W2: a temporary `processor.txn-writer` turns each parsed transaction into one row
+  (category OTHER) and publishes `clean-transactions`; W4 dedup/merchants/categories replace it.
+- W2: MANUAL_TEXT/voice/widget/bill-photo raw events are skipped by the parser until W3/§21.
+- W2: auth is a static per-user API key (`uv run kharcha-admin create-user`); Firebase in W9.
+- W2: integration tests start Kafka from `apache/kafka:4.0.0` (same as compose) instead of
+  testcontainers' cp-kafka module.
+- YOU: `ollama pull qwen2.5:1.5b`, then check real parsing quality with a few of your own messages.
+- YOU: finish Android Studio first-run setup so the SDK is downloaded (needed for W1).
 - Phase 0: Temporal runs the dev server (SQLite) locally; the Helm chart is used in Phase 9.

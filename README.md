@@ -24,7 +24,9 @@ uv sync
 uv run alembic upgrade head
 uv run pytest -m "not integration"                  # unit + contract tests
 uv run pytest -m integration                        # migrations (testcontainers) + LLM smoke test
+uv run kharcha-admin create-user --name Me          # prints an API key + KHARCHA_API_KEYS line for .env
 uv run kharcha-ingest                               # http://localhost:8000/healthz
+uv run kharcha-processor                            # parser + transaction writer (metrics :8001)
 
 cd ../ml && uv sync && uv run pytest
 ```

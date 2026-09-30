@@ -1,17 +1,16 @@
-"""Alembic upgrade/downgrade against a real Postgres + pgvector (testcontainers)."""
-
-from collections.abc import Iterator
-from pathlib import Path
+"""Alembic upgrade/downgrade against a real Postgres + pgvector, and ORM <-> schema drift."""
 
 import pytest
 import sqlalchemy as sa
 from alembic import command
-from alembic.config import Config
 from testcontainers.community.postgres import PostgresContainer
+
+from kharcha_common.db import Base
+from kharcha_common.db import models as _models  # noqa: F401 - registers tables
+from tests.integration.conftest import alembic_config, pg_urls
 
 pytestmark = pytest.mark.integration
 
-BACKEND = Path(__file__).resolve().parents[2]
 CORE_TABLES = {
     "users",
     "devices",
@@ -31,19 +30,6 @@ CORE_TABLES = {
 }
 
 
-@pytest.fixture(scope="module")
-def postgres() -> Iterator[PostgresContainer]:
-    with PostgresContainer("pgvector/pgvector:pg17", driver=None) as pg:
-        yield pg
-
-
-def _alembic_config(async_url: str) -> Config:
-    cfg = Config(str(BACKEND / "alembic.ini"))
-    cfg.set_main_option("script_location", str(BACKEND / "migrations"))
-    cfg.set_main_option("sqlalchemy.url", async_url)
-    return cfg
-
-
 def _tables(sync_url: str) -> set[str]:
     engine = sa.create_engine(sync_url)
     try:
@@ -53,16 +39,31 @@ def _tables(sync_url: str) -> set[str]:
 
 
 def test_upgrade_and_downgrade(postgres: PostgresContainer) -> None:
-    base_url = postgres.get_connection_url()  # postgresql://...
-    async_url = base_url.replace("postgresql://", "postgresql+asyncpg://", 1)
-    sync_url = base_url.replace("postgresql://", "postgresql+psycopg://", 1)
-    cfg = _alembic_config(async_url)
+    urls = pg_urls(postgres)
+    cfg = alembic_config(urls.async_url)
 
     command.upgrade(cfg, "head")
-    assert _tables(sync_url) == CORE_TABLES
+    assert _tables(urls.sync_url) == CORE_TABLES
 
     command.downgrade(cfg, "base")
-    assert _tables(sync_url) == set()
+    assert _tables(urls.sync_url) == set()
 
     command.upgrade(cfg, "head")
-    assert _tables(sync_url) == CORE_TABLES
+    assert _tables(urls.sync_url) == CORE_TABLES
+
+
+def test_orm_models_match_migrations(postgres: PostgresContainer) -> None:
+    urls = pg_urls(postgres)
+    command.upgrade(alembic_config(urls.async_url), "head")
+    engine = sa.create_engine(urls.sync_url)
+    try:
+        inspector = sa.inspect(engine)
+        for table in Base.metadata.sorted_tables:
+            db_cols = {c["name"]: c for c in inspector.get_columns(table.name)}
+            assert set(db_cols) == {c.name for c in table.columns}, table.name
+            for column in table.columns:
+                assert db_cols[column.name]["nullable"] == column.nullable, (
+                    f"{table.name}.{column.name} nullability differs"
+                )
+    finally:
+        engine.dispose()

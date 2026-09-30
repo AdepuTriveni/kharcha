@@ -7,10 +7,12 @@ dependencies = [
     "kharcha-common",
     "fastapi>=0.115",
     "uvicorn[standard]>=0.34",
+    "prometheus-client>=0.21",
 ]
 
 [project.scripts]
 kharcha-ingest = "kharcha_ingest.main:run"
+kharcha-admin = "kharcha_ingest.admin:run"
 
 [tool.uv.sources]
 kharcha-common = { workspace = true }

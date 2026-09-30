@@ -6,6 +6,7 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
     "kharcha-common",
     "kharcha-ingest-api",
+    "kharcha-processor",
     "alembic>=1.14",
 ]
 
@@ -33,6 +34,7 @@ members = ["packages/*"]
 [tool.uv.sources]
 kharcha-common = { workspace = true }
 kharcha-ingest-api = { workspace = true }
+kharcha-processor = { workspace = true }
 
 # ---------------------------------------------------------------- ruff
 [tool.ruff]
@@ -51,7 +53,7 @@ ignore = [
 "**/tests/**" = ["S", "DTZ001"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["kharcha_common", "kharcha_ingest"]
+known-first-party = ["kharcha_common", "kharcha_ingest", "kharcha_processor"]
 
 # ---------------------------------------------------------------- mypy
 [tool.mypy]
@@ -72,6 +74,7 @@ warn_required_dynamic_aliases = true
 # ---------------------------------------------------------------- pytest
 [tool.pytest.ini_options]
 addopts = "--import-mode=importlib --strict-markers"
+pythonpath = ["."]
 testpaths = ["packages", "tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"

@@ -7,6 +7,7 @@ members = [
     "kharcha-backend",
     "kharcha-common",
     "kharcha-ingest-api",
+    "kharcha-processor",
 ]
 
 [[package]]
@@ -278,6 +279,19 @@ wheels = [
 ]
 
 [[package]]
+name = "confluent-kafka"
+version = "2.15.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/44/fd/e8204b211ce0f32d4d03f9c3423b1244c2dc7fae45babbf98979c00a9e11/confluent_kafka-2.15.1.tar.gz", hash = "sha256:99d1223020e27854e75981333983c5120d64762268f8afcc805fbd62e7de49aa", size = 325065, upload-time = "2026-09-10T15:27:59.367Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c4/e6/79cc2bb61cf05f00e4b367e2aa4cb940e5eddbfa4adeb4177115791f4a7d/confluent_kafka-2.15.1-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:79749b23a3ad751546f9de5bae3651116cbd0df449afc86d122c80359d6453ca", size = 4381400, upload-time = "2026-09-10T15:27:18.564Z" },
+    { url = "https://files.pythonhosted.org/packages/6d/6d/67e59d6807d472ad5f2ac831e735da5ffd321da98adf64cef4cc0bf5f6ed/confluent_kafka-2.15.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:64fbcb0c6ee95d0baee2b238d177595c7baa8ccd74df96bea086103dfbfd254d", size = 4350483, upload-time = "2026-09-10T15:27:20.019Z" },
+    { url = "https://files.pythonhosted.org/packages/25/08/8c404bb5849f98e8468b24f1f336360cc37802bb058ff750255621fea484/confluent_kafka-2.15.1-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:2d2d876c83214f2651d92c557d5057be1356dd3fbb31f26d50863f610655e2fe", size = 4994340, upload-time = "2026-09-10T15:27:21.431Z" },
+    { url = "https://files.pythonhosted.org/packages/d7/a3/31112ce258d74be4636e6d1f73717587e19fd311c70477ae807136f3a48c/confluent_kafka-2.15.1-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:326e237f6b25587d7dc96854e3a1315979843bacbe48d76a50412f12e49328e1", size = 4806262, upload-time = "2026-09-10T15:27:22.822Z" },
+    { url = "https://files.pythonhosted.org/packages/3c/b8/d07ef7c72f55c01d13de4873e86e49eb6ebd8989cb104cb982fa365d389b/confluent_kafka-2.15.1-cp312-cp312-win_amd64.whl", hash = "sha256:b6c73dcb91d5f84ed0d24b37817944f44b5d661f02ec8cc7a3c6d497c03bdc7c", size = 4565312, upload-time = "2026-09-10T15:27:24.321Z" },
+]
+
+[[package]]
 name = "distro"
 version = "1.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -301,6 +315,24 @@ wheels = [
 ]
 
 [[package]]
+name = "fast-depends"
+version = "3.0.9"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4d/8e/0da74a68d1fab3370962802bde8726fbd9248d8156f9cf98f3562e654cc3/fast_depends-3.0.9.tar.gz", hash = "sha256:c31c3985d0196ea4998da9f5913a76ede75cc4484d89eeafcea1a6bd64fbca82", size = 18437, upload-time = "2026-09-19T12:37:28.181Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b6/c3/a4e6a88229798f5afe0e79a9e81947731a89e3f19659b7e90980cfedeee4/fast_depends-3.0.9-py3-none-any.whl", hash = "sha256:a9fda223e4f9f92ade11dabfdc31d20e62fedc25340f1a5b1f01db2ae25ab1d9", size = 25521, upload-time = "2026-09-19T12:37:26.863Z" },
+]
+
+[package.optional-dependencies]
+pydantic = [
+    { name = "pydantic" },
+]
+
+[[package]]
 name = "fastapi"
 version = "0.142.2"
 source = { registry = "https://pypi.org/simple" }
@@ -315,6 +347,25 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/56/4f/f7c30a73127e0a8bbffe788369b8359e530b01ae06e2757936fa35bc5e6d/fastapi-0.142.2.tar.gz", hash = "sha256:06366626f2e70576367714d9ab2fe8472e6c8456dba69b399f9f797ab5e92570", size = 466721, upload-time = "2026-09-30T09:51:11.277Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a0/b6/78aaf9141fb46742928c113f3cf6ef2259d538cb02b604b7656c1dc9883c/fastapi-0.142.2-py3-none-any.whl", hash = "sha256:bd5f4d81f1e93a88bcd77caf4dfe3c2dbffc3805407a0007e9a114c18b3a670b", size = 144409, upload-time = "2026-09-30T09:51:09.8Z" },
+]
+
+[[package]]
+name = "faststream"
+version = "0.7.7"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "fast-depends", extra = ["pydantic"] },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6f/73/d07717b874cdc039b15e6f44b8629d8b00b7abc150167bf8f30132a17d82/faststream-0.7.7.tar.gz", hash = "sha256:dfba491c665f1b962f7c1262496201340bec8711f7d19a786f13cb1e9e2a5bdd", size = 377284, upload-time = "2026-09-23T20:36:14.055Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a3/eb/dc9e1702cafa904bd06e0f9438baaf4563dcd6e07e9036f08352d2687180/faststream-0.7.7-py3-none-any.whl", hash = "sha256:f15f1c2f389d218e5e9b2d2e22286155faffed20f7e16be8d26ccf5e9f1dd0ce", size = 601362, upload-time = "2026-09-23T20:36:12.222Z" },
+]
+
+[package.optional-dependencies]
+confluent = [
+    { name = "confluent-kafka" },
 ]
 
 [[package]]
@@ -687,6 +738,7 @@ dependencies = [
     { name = "alembic" },
     { name = "kharcha-common" },
     { name = "kharcha-ingest-api" },
+    { name = "kharcha-processor" },
 ]
 
 [package.dev-dependencies]
@@ -709,6 +761,7 @@ requires-dist = [
     { name = "alembic", specifier = ">=1.14" },
     { name = "kharcha-common", editable = "packages/common" },
     { name = "kharcha-ingest-api", editable = "packages/ingest_api" },
+    { name = "kharcha-processor", editable = "packages/processor" },
 ]
 
 [package.metadata.requires-dev]
@@ -732,18 +785,24 @@ version = "0.1.0"
 source = { editable = "packages/common" }
 dependencies = [
     { name = "asyncpg" },
+    { name = "faststream", extra = ["confluent"] },
+    { name = "prometheus-client" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "sqlalchemy", extra = ["asyncio"] },
+    { name = "tenacity" },
     { name = "tzdata" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "asyncpg", specifier = ">=0.30" },
+    { name = "faststream", extras = ["confluent"], specifier = ">=0.7" },
+    { name = "prometheus-client", specifier = ">=0.21" },
     { name = "pydantic", specifier = ">=2.10" },
     { name = "pydantic-settings", specifier = ">=2.7" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.36" },
+    { name = "tenacity", specifier = ">=9.0" },
     { name = "tzdata", specifier = ">=2024.2" },
 ]
 
@@ -754,6 +813,7 @@ source = { editable = "packages/ingest_api" }
 dependencies = [
     { name = "fastapi" },
     { name = "kharcha-common" },
+    { name = "prometheus-client" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
@@ -761,7 +821,23 @@ dependencies = [
 requires-dist = [
     { name = "fastapi", specifier = ">=0.115" },
     { name = "kharcha-common", editable = "packages/common" },
+    { name = "prometheus-client", specifier = ">=0.21" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.34" },
+]
+
+[[package]]
+name = "kharcha-processor"
+version = "0.1.0"
+source = { editable = "packages/processor" }
+dependencies = [
+    { name = "kharcha-common" },
+    { name = "litellm" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "kharcha-common", editable = "packages/common" },
+    { name = "litellm", specifier = ">=1.55" },
 ]
 
 [[package]]
@@ -965,6 +1041,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/f9/e2/3e91f31a7d2b083fe6ef3fa267035b518369d9511ffab804f839851d2779/pluggy-1.6.0.tar.gz", hash = "sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3", size = 69412, upload-time = "2025-05-15T12:30:07.975Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl", hash = "sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746", size = 20538, upload-time = "2025-05-15T12:30:06.134Z" },
+]
+
+[[package]]
+name = "prometheus-client"
+version = "0.26.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/52/73/f1334c29c2af4cd9dba6c7817e61b611bd0215e2eb5565c6064a4de18802/prometheus_client-0.26.0.tar.gz", hash = "sha256:04a91bcf94e2cf74a44a1a874d651a2e853ed354b6e822f3b7487751465d5c2b", size = 92910, upload-time = "2026-07-24T19:36:41.893Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/eb/a3/b69efbf4143b5b9859b977770bbbabcc2796b702fa69dc40271e45cd5a56/prometheus_client-0.26.0-py3-none-any.whl", hash = "sha256:fa93d06737aa02bacd05794768508bb97d2fbee28cb3bca04eaae92f0ca953d6", size = 64494, upload-time = "2026-07-24T19:36:40.854Z" },
 ]
 
 [[package]]
@@ -1353,6 +1438,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/7b/2b/3850dc6bf7ef71b088962eba31dafc6cffd2f96e577ebb0bb316df96da3e/starlette-1.7.0.tar.gz", hash = "sha256:c79f74ea63cff761804fbbfb182f1e0b440c2d07b164d24700c5a1bab5d6ff5d", size = 2736246, upload-time = "2026-09-23T07:30:26.35Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4e/d6/1ec1b290f9e0fb067899b61e1d37a30c923068bad260b216dbe37a7d2967/starlette-1.7.0-py3-none-any.whl", hash = "sha256:67f8e99895493dd2911a03f11314af6ceebeae4e704bb9f43dfc6a9db151c93e", size = 78980, upload-time = "2026-09-23T07:30:24.567Z" },
+]
+
+[[package]]
+name = "tenacity"
+version = "9.1.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/47/c6/ee486fd809e357697ee8a44d3d69222b344920433d3b6666ccd9b374630c/tenacity-9.1.4.tar.gz", hash = "sha256:adb31d4c263f2bd041081ab33b498309a57c77f9acf2db65aadf0898179cf93a", size = 49413, upload-time = "2026-02-07T10:45:33.841Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d7/c1/eb8f9debc45d3b7918a32ab756658a0904732f75e555402972246b0b8e71/tenacity-9.1.4-py3-none-any.whl", hash = "sha256:6095a360c919085f28c6527de529e76a06ad89b23659fa881ae0649b867a9d55", size = 28926, upload-time = "2026-02-07T10:45:32.24Z" },
 ]
 
 [[package]]

@@ -9,6 +9,9 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.36",
     "asyncpg>=0.30",
     "tzdata>=2024.2",  # zoneinfo data on Windows
+    "faststream[confluent]>=0.7",
+    "tenacity>=9.0",
+    "prometheus-client>=0.21",
 ]
 
 [build-system]

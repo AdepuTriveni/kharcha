@@ -2,6 +2,7 @@
 
     uv run kharcha-admin create-user --name "Me"
     uv run kharcha-admin link-code --user u_1234abcd
+    uv run kharcha-admin seed-merchants
 
 Prints the key once (put it in the app) and the settings entry for the server.
 """
@@ -18,6 +19,7 @@ from sqlalchemy.dialects.postgresql import insert
 from kharcha_common.db import make_engine, make_sessionmaker
 from kharcha_common.db.models import User
 from kharcha_common.linking import create_link_code
+from kharcha_common.merchants import seed_merchants
 from kharcha_common.settings import get_settings
 from kharcha_ingest.auth import hash_api_key, new_api_key
 
@@ -29,6 +31,15 @@ async def create_user(user_id: str, name: str | None) -> None:
             await session.execute(
                 insert(User).values(id=user_id, display_name=name).on_conflict_do_nothing()
             )
+    finally:
+        await engine.dispose()
+
+
+async def load_seeds() -> int:
+    engine = make_engine(get_settings())
+    try:
+        async with make_sessionmaker(engine).begin() as session:
+            return await seed_merchants(session)
     finally:
         await engine.dispose()
 
@@ -49,7 +60,12 @@ def main(argv: list[str] | None = None) -> int:
     create.add_argument("--name", default=None)
     link = sub.add_parser("link-code", help="print a Telegram link code for a user")
     link.add_argument("--user", required=True)
+    sub.add_parser("seed-merchants", help="load backend/seeds/seed-merchants.yaml")
     args = parser.parse_args(argv)
+
+    if args.command == "seed-merchants":
+        sys.stdout.write(f"seeded {asyncio.run(load_seeds())} merchants\n")
+        return 0
 
     if args.command == "link-code":
         code = asyncio.run(link_code(args.user))

@@ -26,6 +26,7 @@ dev = [
     "jsonschema>=4.23",
     "types-jsonschema",
     "fakeredis>=2.26",
+    "types-pyyaml",
 ]
 
 [tool.uv]

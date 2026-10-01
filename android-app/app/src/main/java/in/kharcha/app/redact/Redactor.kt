@@ -18,8 +18,9 @@ class Redactor(private val vpaKey: ByteArray) {
         out = EMAIL.replace(out) { "[email]" }
         out = VPA.replace(out) { m -> redactVpa(m.groupValues[1], m.groupValues[2]) }
         out = PAN.replace(out) { "[pan]" }
-        out = AADHAAR.replace(out) { "[aadhaar]" }
+        // Cards before Aadhaar: a spaced 16-digit card would otherwise look like 4-4-4 + 4.
         out = CARD.replace(out) { m -> "XX" + m.value.filter(Char::isDigit).takeLast(4) }
+        out = AADHAAR.replace(out) { "[aadhaar]" }
         out = ACCOUNT.replace(out) { m ->
             val digits = m.groupValues[3]
             if (digits.length <= 4) m.value else m.groupValues[1] + "XX" + digits.takeLast(4)
@@ -77,7 +78,8 @@ class Redactor(private val vpaKey: ByteArray) {
             "(\\b(?i:a/c|acct|account|ac)\\.?\\s*(?i:no\\.?)?\\s*[:\\-]?\\s*)([Xx*]*)([0-9]{5,18})(?![0-9])"
         )
         private val PHONE = Regex("(?<![0-9])(?:\\+91[\\s-]?)?[6-9][0-9]{9}(?![0-9])")
-        private val LONG_DIGITS = Regex("(?<![0-9])[0-9]{9,}(?![0-9])")
+        // Not inside words or VPAs (merchant ids like paytmqr2810050501@paytm stay intact).
+        private val LONG_DIGITS = Regex("(?<![0-9A-Za-z])[0-9]{9,}(?![0-9A-Za-z@])")
         private val REFERENCE_CONTEXT = Regex(
             "(ref|rrn|utr|txn|upi|transaction id|imps|neft|order id)[\\s.:/#no-]*$",
             RegexOption.IGNORE_CASE,

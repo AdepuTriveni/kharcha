@@ -50,6 +50,14 @@ android {
     }
     testOptions {
         unitTests.isIncludeAndroidResources = true
+        // On slow networks, pre-download Robolectric's android-all jar to ~/.robolectric-jars.
+        val robolectricJars = File(System.getProperty("user.home"), ".robolectric-jars")
+        unitTests.all {
+            if (robolectricJars.isDirectory && !robolectricJars.list().isNullOrEmpty()) {
+                it.systemProperty("robolectric.offline", "true")
+                it.systemProperty("robolectric.dependency.dir", robolectricJars.absolutePath)
+            }
+        }
     }
 }
 

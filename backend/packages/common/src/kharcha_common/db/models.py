@@ -52,6 +52,22 @@ class ProcessedEvent(Base):
     processed_at: Mapped[datetime] = mapped_column(TZ, server_default="now()")
 
 
+class Merchant(Base):
+    __tablename__ = "merchants"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    name: Mapped[str] = mapped_column(Text)
+    default_category: Mapped[str] = mapped_column(Text)
+
+
+class MerchantAlias(Base):
+    __tablename__ = "merchant_aliases"
+
+    alias: Mapped[str] = mapped_column(Text, primary_key=True)
+    merchant_id: Mapped[str] = mapped_column(Text, ForeignKey("merchants.id"))
+    source: Mapped[str] = mapped_column(Text)  # SEED|RULE|LLM|USER
+
+
 class TransactionRow(Base):
     __tablename__ = "transactions"
 
@@ -62,7 +78,7 @@ class TransactionRow(Base):
     kind: Mapped[str] = mapped_column(Text)
     status: Mapped[str] = mapped_column(Text)
     channel: Mapped[str] = mapped_column(Text)
-    merchant_id: Mapped[str | None] = mapped_column(Text)
+    merchant_id: Mapped[str | None] = mapped_column(Text, ForeignKey("merchants.id"))
     merchant_raw: Mapped[str | None] = mapped_column(Text)
     category: Mapped[str] = mapped_column(Text)
     is_essential: Mapped[bool] = mapped_column(Boolean)

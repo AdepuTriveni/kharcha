@@ -5,14 +5,11 @@ message republishes the same events and downstream consumers skip them.
 """
 
 import logging
-import uuid
 from dataclasses import dataclass
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from kharcha_common.cash_parser import parse_cash_entry
-from kharcha_common.db.models import TransactionSource
 from kharcha_common.events import (
     CashEvent,
     CashEventPayload,
@@ -27,14 +24,14 @@ from kharcha_common.kafka import EventPublisher, PermanentError, derived_event_i
 from kharcha_common.topics import Topic
 from kharcha_processor import metrics
 from kharcha_processor.cash import write_cash_entry
+from kharcha_processor.dedup import apply_parsed, clean_payload
 from kharcha_processor.parser import Failed, parse_raw_event
 from kharcha_processor.teacher import Extractor
-from kharcha_processor.writer import clean_payload, write_transaction
 
 log = logging.getLogger(__name__)
 
 PARSER_CONSUMER = "processor.parser"
-WRITER_CONSUMER = "processor.txn-writer"
+DEDUP_CONSUMER = "processor.dedup"
 CASH_CONSUMER = "processor.cash"
 PRODUCER = "processor"
 PARSED_TYPE = "PARSED_TRANSACTION"
@@ -121,31 +118,27 @@ async def handle_cash_event(body: bytes, deps: ProcessorDeps) -> None:
 
 
 async def handle_parsed_transaction(body: bytes, deps: ProcessorDeps) -> None:
+    """processor.dedup: merge or insert, then republish every changed row (§11)."""
     event = ParsedTransactionEvent.model_validate_json(body)
     async with deps.sessions.begin() as session:
-        is_new = await mark_processed(session, WRITER_CONSUMER, event.event_id)
-        row = await write_transaction(session, event.user_id, event.payload)
-        sources = (
-            await session.execute(
-                select(TransactionSource.raw_event_id).where(
-                    TransactionSource.transaction_id == row.id
-                )
-            )
-        ).scalars()
-        payload = clean_payload(row, sorted(str(uuid.UUID(str(s))) for s in sources))
+        is_new = await mark_processed(session, DEDUP_CONSUMER, event.event_id)
+        rows = await apply_parsed(session, event.user_id, event.payload)
+        payloads = [await clean_payload(session, row) for row in rows]
     if is_new:
-        metrics.TRANSACTIONS_WRITTEN.labels(row.kind).inc()
+        for p in payloads:
+            metrics.TRANSACTIONS_WRITTEN.labels(p.kind.value).inc()
 
     # Published after commit, also on redelivery, so a crash between the two cannot lose it.
-    await deps.publisher.publish_event(
-        Topic.CLEAN_TRANSACTIONS,
-        CleanTransactionEvent(
-            event_id=derived_event_id("clean", row.id, str(row.version)),
-            user_id=event.user_id,
-            type=CLEAN_TYPE,
-            occurred_at=event.occurred_at,
-            producer=PRODUCER,
-            causation_id=event.event_id,
-            payload=payload,
-        ),
-    )
+    for payload in payloads:
+        await deps.publisher.publish_event(
+            Topic.CLEAN_TRANSACTIONS,
+            CleanTransactionEvent(
+                event_id=derived_event_id("clean", payload.transaction_id, str(payload.version)),
+                user_id=event.user_id,
+                type=CLEAN_TYPE,
+                occurred_at=event.occurred_at,
+                producer=PRODUCER,
+                causation_id=event.event_id,
+                payload=payload,
+            ),
+        )

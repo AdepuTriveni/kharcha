@@ -14,8 +14,8 @@ from kharcha_common.settings import Settings, get_settings
 from kharcha_common.topics import Topic
 from kharcha_processor.handlers import (
     CASH_CONSUMER,
+    DEDUP_CONSUMER,
     PARSER_CONSUMER,
-    WRITER_CONSUMER,
     ProcessorDeps,
     handle_cash_event,
     handle_parsed_transaction,
@@ -56,7 +56,7 @@ def build_broker(settings: Settings, teacher: Extractor | None = None) -> KafkaB
 
     @broker.subscriber(
         Topic.PARSED_TRANSACTIONS,
-        group_id=WRITER_CONSUMER,
+        group_id=DEDUP_CONSUMER,
         auto_offset_reset="earliest",
         ack_policy=AckPolicy.NACK_ON_ERROR,
     )
@@ -66,7 +66,7 @@ def build_broker(settings: Settings, teacher: Extractor | None = None) -> KafkaB
             body=message.body,
             key=_key(message),
             topic=Topic.PARSED_TRANSACTIONS,
-            consumer=WRITER_CONSUMER,
+            consumer=DEDUP_CONSUMER,
             publisher=publisher,
         )
 

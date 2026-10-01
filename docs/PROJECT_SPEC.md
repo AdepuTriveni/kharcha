@@ -318,14 +318,17 @@ CASH_SPEND | CASH_IN | UNACCOUNTED_CASH. Consumers upsert by `transactionId` + `
 {
   "taskId": "at_…",
   "agent": "COACH | CASH_DETECTIVE | REFUND_ADVOCATE | MEMORY_KEEPER",
-  "trigger": "WEEKLY_REVIEW | RISK_MOMENT | MISSING_CASH | REFUND_OVERDUE | FEEDBACK | USER_MESSAGE",
+  "trigger": "WEEKLY_REVIEW | RISK_MOMENT | MISSING_CASH | REFUND_OVERDUE | FEEDBACK | USER_MESSAGE | BUDGET | FREQUENCY | BROKE_DATE_MOVED",
   "goal": "Weekly review for week 2026-W40",
   "contextRefs": { "week": "2026-W40", "riskScoreId": null, "refundCaseId": null, "withdrawalId": null },
   "banditDecision": null,
   "deadline": "2026-10-04T06:00:00Z",
-  "priority": "LOW | NORMAL | HIGH"
+  "priority": "LOW | NORMAL | HIGH",
+  "dedupeKey": "freq:zomato@hdfcbank:2026-W40"
 }
 ```
+`BUDGET`, `FREQUENCY` and `BROKE_DATE_MOVED` carry the §22.1 deterministic triggers. `dedupeKey`
+(optional) becomes `alerts_sent.dedupe_key`, so a re-delivered task never produces a second alert.
 **AgentResultPayload**: `{ taskId, agent, runId, status, proposals: [Proposal], memoryWrites: [..], drafts: [..] }`
 where `Proposal = { type, text, category?, buttons[], reason, groundingNumbers[] }`.
 

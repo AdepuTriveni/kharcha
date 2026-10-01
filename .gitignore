@@ -24,6 +24,7 @@ service-account*.json
 # ML data and artifacts (real data never committed; ml/data/samples/ is synthetic only)
 ml/data/*
 !ml/data/samples/
+!ml/data/DATASET_CARD.md
 *.gguf
 *.onnx
 *.safetensors

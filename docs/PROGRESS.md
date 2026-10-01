@@ -80,7 +80,12 @@
   - [ ] YOU: a cloud VM (Oracle/AWS free tier) to run the compose stack; onboard friends
 
 ## Phase 4 — Own model (Pillar 1)
-- [ ] W10 Synthetic generator, distillation, review queue, template splits, dataset card, leakage test
+- [x] W10 Synthetic generator, distillation, review queue, template splits, dataset card, leakage test
+  - [x] 28 hand-written templates (19 banks/apps) + 9 hard-negative kinds, exact labels, noise;
+        Ollama teacher distillation + review queue (disagreements, failures, 10% sample);
+        template splits with held-out banks (CANBNK, UBOI) in gold only, MinHash near-dup removal,
+        `kharcha-dataset synth|distill|build`, `ml/data/DATASET_CARD.md`; leakage test in pytest
+  - [ ] real data: export (consent) -> distill -> review queue with `kharcha-label` -> rebuild
 - [ ] W11 Base-model comparison, LoRA fine-tune, five-way eval report
 - [ ] W12 GGUF + quantization, Ollama tier 3, Android llama.cpp + constrained decoding, shadow rollout
 - [ ] ✅ Model passes promotion gate and runs on phone

@@ -6,16 +6,19 @@ requires-python = ">=3.12,<3.13"
 # Heavy training deps (torch, transformers, peft, lightgbm, ...) are added in Phase 4/7.
 dependencies = [
     "pydantic>=2.10",
+    "httpx>=0.28",
 ]
 
 [project.scripts]
 kharcha-label = "kharcha_ml.dataset.label_cli:run"
+kharcha-dataset = "kharcha_ml.dataset.build_cli:run"
 
 [dependency-groups]
 dev = [
     "ruff>=0.8",
     "mypy>=1.13",
     "pytest>=8.3",
+    "pytest-asyncio>=0.25",
 ]
 
 [build-system]
@@ -32,10 +35,14 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
 
+[tool.ruff.lint.per-file-ignores]
+"src/kharcha_ml/dataset/synthetic.py" = ["E501"]  # message templates read better on one line
+
 [tool.mypy]
 python_version = "3.12"
 strict = true
 
 [tool.pytest.ini_options]
 addopts = "--import-mode=importlib --strict-markers"
+asyncio_mode = "auto"
 testpaths = ["tests"]

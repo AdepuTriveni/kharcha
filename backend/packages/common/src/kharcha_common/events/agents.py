@@ -1,6 +1,7 @@
 """Agent task payloads (PROJECT_SPEC §7.3). Results/feedback payloads arrive with W8."""
 
 from enum import StrEnum
+from typing import Literal
 
 from pydantic import AwareDatetime, Field
 
@@ -63,6 +64,19 @@ class AgentRunStatus(StrEnum):
     DENIED_TOOL = "DENIED_TOOL"
 
 
+class CashSplit(CamelModel):
+    category: str
+    amount_paise: int = Field(gt=0)
+
+
+class ButtonAction(CamelModel):
+    """What tapping a button does (Cash Detective §17.4). Amounts come from tools, not the model."""
+
+    label: str = Field(max_length=40)
+    kind: Literal["CASH_ENTRIES", "DONT_REMEMBER", "OTHER", "NONE"] = "NONE"
+    cash_entries: list[CashSplit] = Field(default_factory=list, max_length=6)
+
+
 class Proposal(CamelModel):
     """A message an agent wants sent. Only the notifier's policy gate can send it (rule 5)."""
 
@@ -74,6 +88,10 @@ class Proposal(CamelModel):
     grounding_numbers: list[str] = Field(default_factory=list)
     # True when written by a fixed template instead of a model (fallback path).
     templated: bool = False
+    # Optional structured buttons (W14); ``buttons`` stays the plain label list.
+    button_actions: list[ButtonAction] = Field(default_factory=list, max_length=5)
+    # Withdrawal / context the actions refer to (e.g. ``cashLedgerId``).
+    refs: dict[str, str] = Field(default_factory=dict)
 
 
 class AgentResultPayload(CamelModel):

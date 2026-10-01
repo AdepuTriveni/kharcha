@@ -261,3 +261,12 @@ TOOLS: dict[str, Tool] = {
         get_budgets,
     )
 }
+
+
+def _with_cash_tools() -> None:
+    from kharcha_mcp_finance.cash_tools import TOOLS as CASH_TOOLS
+
+    TOOLS.update(CASH_TOOLS)
+
+
+_with_cash_tools()

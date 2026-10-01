@@ -8,9 +8,11 @@ import json
 from collections.abc import Mapping
 from typing import Any
 
+from kharcha_common.commitments import progress
 from kharcha_common.events import AgentTaskPayload, AgentTrigger, Proposal, ProposalType
 from kharcha_common.money import format_inr
 from kharcha_common.prompts import load_prompt
+from kharcha_common.time import to_ist
 from kharcha_runtime.types import RunContext, ToolExecutor
 
 ROAST_LEVELS = ("OFF", "MILD", "MEDIUM", "SAVAGE")
@@ -43,6 +45,24 @@ def _nudge(text: str, reason: str, category: str | None = None) -> Proposal:
 async def _data(tools: ToolExecutor, ctx: RunContext, name: str, **args: Any) -> Mapping[str, Any]:
     result = await tools.call(ctx, name, args)
     return result.data if result.ok else {}
+
+
+async def _commitment_check(tools: ToolExecutor, ctx: RunContext) -> str:
+    """One line per active commitment the rules understand: "Zomato: 3 of max 2 this week"."""
+    commitments = (await _data(tools, ctx, "list_commitments")).get("commitments", [])
+    if not commitments:
+        return ""
+    items = (await _data(tools, ctx, "list_transactions", days=7, limit=20)).get("items", [])
+    today = to_ist(ctx.clock()).date()
+    lines = []
+    for c in commitments[:2]:
+        checked = progress(str(c["content"]), list(items), today)
+        if checked is None:
+            continue
+        target, count, limit = checked
+        verdict = "on track" if count <= limit else "over"
+        lines.append(f"{target.title()}: {count} of max {limit} this week ({verdict}).")
+    return (" Your commitment: " + " ".join(lines)) if lines else ""
 
 
 async def fallback(task: AgentTaskPayload, tools: ToolExecutor, ctx: RunContext) -> list[Proposal]:
@@ -97,5 +117,6 @@ async def fallback(task: AgentTaskPayload, tools: ToolExecutor, ctx: RunContext)
         if s.get("topMerchants"):
             top = s["topMerchants"][0]
             text += f" Top: {top['merchant']} ({format_inr(top['spentPaise'])})."
+        text += await _commitment_check(tools, ctx)
         return [_nudge(text, "weekly review")]
     return []

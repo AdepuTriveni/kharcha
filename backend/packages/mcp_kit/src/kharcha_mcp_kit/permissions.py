@@ -14,6 +14,7 @@ FINANCE_READ = frozenset(
         "get_budgets",
     }
 )
+CASH_READ = frozenset({"get_withdrawal", "get_cash_habits"})
 ANALYST_SQL = frozenset({"run_analyst_sql", "describe_schema", "make_chart"})
 MEMORY_READ = frozenset({"search_memories", "list_commitments"})
 MEMORY_WRITE = frozenset({"write_memory", "update_memory", "forget_memory"})
@@ -32,7 +33,7 @@ EXTERNAL = frozenset(
 
 TOOL_PERMISSIONS: dict[str, frozenset[str]] = {
     "coach": FINANCE_READ | MEMORY_READ | NOTIFY_READ | {"propose_message"},
-    "cash_detective": FINANCE_READ | MEMORY_READ | NOTIFY_READ | {"propose_message"},
+    "cash_detective": FINANCE_READ | CASH_READ | MEMORY_READ | NOTIFY_READ | {"propose_message"},
     "refund_advocate": frozenset({"list_transactions"})
     | NOTIFY_READ
     | REFUND

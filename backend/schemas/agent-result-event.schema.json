@@ -107,10 +107,73 @@
       "title": "AgentTrigger",
       "type": "string"
     },
+    "ButtonAction": {
+      "additionalProperties": false,
+      "description": "What tapping a button does (Cash Detective §17.4). Amounts come from tools, not the model.",
+      "properties": {
+        "cashEntries": {
+          "items": {
+            "$ref": "#/$defs/CashSplit"
+          },
+          "maxItems": 6,
+          "title": "Cashentries",
+          "type": "array"
+        },
+        "kind": {
+          "default": "NONE",
+          "enum": [
+            "CASH_ENTRIES",
+            "DONT_REMEMBER",
+            "OTHER",
+            "NONE"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 40,
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label"
+      ],
+      "title": "ButtonAction",
+      "type": "object"
+    },
+    "CashSplit": {
+      "additionalProperties": false,
+      "properties": {
+        "amountPaise": {
+          "exclusiveMinimum": 0,
+          "title": "Amountpaise",
+          "type": "integer"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        }
+      },
+      "required": [
+        "category",
+        "amountPaise"
+      ],
+      "title": "CashSplit",
+      "type": "object"
+    },
     "Proposal": {
       "additionalProperties": false,
       "description": "A message an agent wants sent. Only the notifier's policy gate can send it (rule 5).",
       "properties": {
+        "buttonActions": {
+          "items": {
+            "$ref": "#/$defs/ButtonAction"
+          },
+          "maxItems": 5,
+          "title": "Buttonactions",
+          "type": "array"
+        },
         "buttons": {
           "items": {
             "type": "string"
@@ -142,6 +205,13 @@
           "default": "",
           "title": "Reason",
           "type": "string"
+        },
+        "refs": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Refs",
+          "type": "object"
         },
         "templated": {
           "default": false,

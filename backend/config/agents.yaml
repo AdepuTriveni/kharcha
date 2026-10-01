@@ -8,3 +8,18 @@ coach:
           propose_message]
   limits: {max_iterations: 8, max_input_tokens: 12000, max_wall_s: 60, max_proposals: 3,
            max_calls_per_tool: 4}
+
+cash_detective:
+  prompt: cash_detective/v1
+  models: [default]
+  tools: [get_withdrawal, get_cash_habits, get_cash_balance, list_transactions, search_memories,
+          get_recent_alerts, propose_message]
+  limits: {max_iterations: 6, max_input_tokens: 8000, max_wall_s: 45, max_proposals: 1,
+           max_calls_per_tool: 3}
+
+memory_keeper:
+  prompt: memory_keeper/v1
+  models: [default]
+  tools: [search_memories, list_commitments, write_memory, update_memory, forget_memory]
+  limits: {max_iterations: 6, max_input_tokens: 8000, max_wall_s: 45, max_proposals: 0,
+           max_calls_per_tool: 4}

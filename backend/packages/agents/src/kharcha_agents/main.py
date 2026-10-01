@@ -47,14 +47,18 @@ def build_executor(settings: Settings, sessions: async_sessionmaker[AsyncSession
 def build_deps(settings: Settings, publisher: BrokerPublisher) -> AgentsDeps:
     sessions = make_sessionmaker(make_engine(settings))
     executor = build_executor(settings, sessions)
-    config, models = load_agent_config("coach", settings.llm_model)
+    configs = {}
+    models: list[str] = []
+    for key in ("coach", "cash_detective", "memory_keeper"):
+        configs[key], chain = load_agent_config(key, settings.llm_model)
+        models = models or chain
     model = (
         LiteLLMModel(models, settings.ollama_api_base, settings.llm_timeout_s)
         if settings.coach_llm_enabled
         else None
     )
     specs = [t.spec for t in ALL_TOOLS.values()]
-    return AgentsDeps(sessions, publisher, executor, specs, config, model)
+    return AgentsDeps(sessions, publisher, executor, specs, configs, model)
 
 
 def build_broker(settings: Settings) -> KafkaBroker:

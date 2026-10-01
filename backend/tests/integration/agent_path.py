@@ -24,8 +24,11 @@ def agents_deps(
     sessions: async_sessionmaker[AsyncSession], publisher: Queues, model: Model | None = None
 ) -> AgentsDeps:
     executor = InProcessExecutor(sessions, ALL_TOOLS)
-    config, _ = load_agent_config("coach", "test-model")
-    return AgentsDeps(sessions, publisher, executor, executor.specs, config, model)
+    configs = {
+        key: load_agent_config(key, "test-model")[0]
+        for key in ("coach", "cash_detective", "memory_keeper")
+    }
+    return AgentsDeps(sessions, publisher, executor, executor.specs, configs, model)
 
 
 async def deliver(

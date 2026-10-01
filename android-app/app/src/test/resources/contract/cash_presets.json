@@ -1,0 +1,22 @@
+[
+  {
+    "amountPaise": 1000,
+    "note": "chai"
+  },
+  {
+    "amountPaise": 2000,
+    "note": "chai"
+  },
+  {
+    "amountPaise": 5000,
+    "note": "snacks"
+  },
+  {
+    "amountPaise": 10000,
+    "note": "auto"
+  },
+  {
+    "amountPaise": 20000,
+    "note": "lunch"
+  }
+]

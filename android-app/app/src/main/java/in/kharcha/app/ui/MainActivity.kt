@@ -7,6 +7,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -23,8 +25,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
+import `in`.kharcha.app.ui.cash.CashScreen
 import `in`.kharcha.app.ui.events.EventsScreen
 import `in`.kharcha.app.ui.settings.SettingsScreen
+import `in`.kharcha.app.ui.transactions.TransactionsScreen
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -37,6 +41,8 @@ class MainActivity : ComponentActivity() {
 
 private enum class Tab(val route: String, val label: String, val icon: ImageVector) {
     EVENTS("events", "Captured", Icons.AutoMirrored.Filled.List),
+    TRANSACTIONS("transactions", "Payments", Icons.Filled.Menu),
+    CASH("cash", "Cash", Icons.Filled.Add),
     SETTINGS("settings", "Settings", Icons.Filled.Settings),
 }
 
@@ -66,6 +72,8 @@ private fun KharchaNav() {
     ) { padding ->
         NavHost(nav, startDestination = Tab.EVENTS.route, modifier = Modifier.padding(padding)) {
             composable(Tab.EVENTS.route) { EventsScreen(onOpenSettings = { nav.navigate(Tab.SETTINGS.route) }) }
+            composable(Tab.TRANSACTIONS.route) { TransactionsScreen() }
+            composable(Tab.CASH.route) { CashScreen() }
             composable(Tab.SETTINGS.route) { SettingsScreen() }
         }
     }

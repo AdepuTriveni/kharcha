@@ -57,6 +57,13 @@ interface OutboxDao {
 
     @Query("SELECT COUNT(*) FROM outbox_events WHERE status = 'PENDING'")
     fun observePendingCount(): Flow<Int>
+
+    @Query("SELECT * FROM outbox_events WHERE eventId = :eventId")
+    suspend fun get(eventId: String): OutboxEvent?
+
+    /** Undo before upload. Returns 1 if the event was still waiting and is now gone. */
+    @Query("DELETE FROM outbox_events WHERE eventId = :eventId AND status = 'PENDING'")
+    suspend fun deleteIfPending(eventId: String): Int
 }
 
 @Database(entities = [OutboxEvent::class], version = 1, exportSchema = true)

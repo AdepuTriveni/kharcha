@@ -49,6 +49,10 @@
   - [x] backend: ATM debit -> cash-events, WIDGET_TAP -> cash parser, `POST/DELETE /v1/cash`,
         `GET /v1/cash/balance`, `GET/PATCH /v1/transactions` (corrections -> per-user overrides,
         Alembic 0003_corrections), integration tests
+  - [x] Android: Cash tab (balance, quick-add, presets, Undo), Payments tab (list + tap to correct),
+        Glance widget presets (WIDGET_TAP), redaction corpus 9 -> 32 cases (Txn/Order ID kept),
+        categories + presets contract fixtures checked on both sides; 25 unit tests
+  - [ ] on a phone: widget tap -> cash balance; correction sticks for the next payment
 
 ## Phase 3 — Forecast, harness, friends
 - [ ] W7 Forecast + what-if + backtest

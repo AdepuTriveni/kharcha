@@ -80,8 +80,9 @@ class Redactor(private val vpaKey: ByteArray) {
         private val PHONE = Regex("(?<![0-9])(?:\\+91[\\s-]?)?[6-9][0-9]{9}(?![0-9])")
         // Not inside words or VPAs (merchant ids like paytmqr2810050501@paytm stay intact).
         private val LONG_DIGITS = Regex("(?<![0-9A-Za-z])[0-9]{9,}(?![0-9A-Za-z@])")
+        // "Ref No.", "UPI:", "Txn ID", "Order ID": references are kept for refund cases (§19).
         private val REFERENCE_CONTEXT = Regex(
-            "(ref|rrn|utr|txn|upi|transaction id|imps|neft|order id)[\\s.:/#no-]*$",
+            "(ref|rrn|utr|txn|upi|transaction|imps|neft|rtgs|order)(\\s*(id|no|number))?[\\s.:/#-]*$",
             RegexOption.IGNORE_CASE,
         )
     }

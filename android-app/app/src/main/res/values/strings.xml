@@ -2,4 +2,6 @@
 <resources>
     <string name="app_name">Kharcha</string>
     <string name="capture_service_label">Kharcha payment capture</string>
+    <string name="widget_label">Kharcha cash</string>
+    <string name="widget_description">One tap to log cash spends</string>
 </resources>

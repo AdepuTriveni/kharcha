@@ -7,6 +7,9 @@ import json
 from datetime import UTC, datetime
 from pathlib import Path
 
+from kharcha_common.cash_parser import parse_cash_entry
+from kharcha_common.categories import Category
+from kharcha_common.events import CashEntryType
 from kharcha_ingest.schemas import BatchRequest, UploadEvent, check_upload_rules
 
 FIXTURE = (
@@ -22,3 +25,19 @@ def test_android_fixture_is_valid_upload() -> None:
     assert [e.type.value for e in events] == ["RAW_NOTIFICATION", "RAW_SMS"]
     assert all(check_upload_rules(e, now) is None for e in events)
     assert events[1].payload.sender == "AX-HDFCBK"
+
+
+def test_android_categories_match_backend() -> None:
+    fixture = FIXTURE.parent / "categories.json"
+    assert json.loads(fixture.read_text(encoding="utf-8")) == [c.value for c in Category]
+
+
+def test_android_cash_presets_parse() -> None:
+    presets = json.loads((FIXTURE.parent / "cash_presets.json").read_text(encoding="utf-8"))
+    for preset in presets:
+        rupees, paise = divmod(preset["amountPaise"], 100)
+        text = f"{rupees}{f'.{paise:02d}' if paise else ''} {preset['note']}"
+        entry = parse_cash_entry(text)
+        assert entry is not None, text
+        assert entry.entry_type is CashEntryType.CASH_SPEND
+        assert entry.amount_paise == preset["amountPaise"]

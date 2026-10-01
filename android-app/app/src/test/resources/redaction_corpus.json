@@ -43,5 +43,120 @@
     "name": "amounts in Indian grouping are kept",
     "input": "Rs.1,00,000 credited to A/c **5678",
     "expected": "Rs.1,00,000 credited to A/c **5678"
+  },
+  {
+    "name": "masked account with no. prefix is kept",
+    "input": "Your a/c no. XXXXXXXX4321 is debited for Rs.500.00",
+    "expected": "Your a/c no. XXXXXXXX4321 is debited for Rs.500.00"
+  },
+  {
+    "name": "short account number is cut to last 4",
+    "input": "Acct 123456789 debited Rs 10",
+    "expected": "Acct XX6789 debited Rs 10"
+  },
+  {
+    "name": "account after A/C: is cut to last 4",
+    "input": "A/C: 001234567890 credited with INR 300",
+    "expected": "A/C: XX7890 credited with INR 300"
+  },
+  {
+    "name": "loan account is cut to last 4",
+    "input": "Loan A/c 123456789012345678 EMI Rs 12,999 debited",
+    "expected": "Loan A/c XX5678 EMI Rs 12,999 debited"
+  },
+  {
+    "name": "ATM id and IFSC are kept",
+    "input": "Rs 2000 withdrawn at ATM S1AN000123 (HDFC0001234) from A/c XX1234",
+    "expected": "Rs 2000 withdrawn at ATM S1AN000123 (HDFC0001234) from A/c XX1234"
+  },
+  {
+    "name": "dashed card number is cut to last 4",
+    "input": "Card 4321-5678-9012-3456 used for INR 999 at FLIPKART",
+    "expected": "Card XX3456 used for INR 999 at FLIPKART"
+  },
+  {
+    "name": "16-digit card without spaces is cut to last 4",
+    "input": "Spent Rs 450 on card 4321567890123456 at DMART",
+    "expected": "Spent Rs 450 on card XX3456 at DMART"
+  },
+  {
+    "name": "15-digit amex number is cut to last 4",
+    "input": "Amex card 371449635398431 charged INR 100",
+    "expected": "Amex card XX8431 charged INR 100"
+  },
+  {
+    "name": "masked card ending is kept",
+    "input": "INR 1,249.50 spent on ICICI Bank Card XX4321 on 02-Oct-26 at AMAZON",
+    "expected": "INR 1,249.50 spent on ICICI Bank Card XX4321 on 02-Oct-26 at AMAZON"
+  },
+  {
+    "name": "phone with +91- prefix is masked",
+    "input": "For help call +91-9876543210 anytime",
+    "expected": "For help call [phone] anytime"
+  },
+  {
+    "name": "toll-free number is cut like other long digit runs",
+    "input": "Not you? Call 18002586161",
+    "expected": "Not you? Call XX6161"
+  },
+  {
+    "name": "upi ref no is kept",
+    "input": "Paid Rs 20 to chaistore@okicici. UPI Ref No. 412345678901",
+    "expected": "Paid Rs 20 to chaistore@okicici. UPI Ref No. 412345678901"
+  },
+  {
+    "name": "imps ref no is kept",
+    "input": "Amt Rs 1,00,000.00 credited via IMPS. Ref no. 612345678000",
+    "expected": "Amt Rs 1,00,000.00 credited via IMPS. Ref no. 612345678000"
+  },
+  {
+    "name": "txn id and order id are kept",
+    "input": "Refund for Txn ID 123456789012 (Order ID 4012345678) initiated",
+    "expected": "Refund for Txn ID 123456789012 (Order ID 4012345678) initiated"
+  },
+  {
+    "name": "ten-digit reference after Ref is not a phone",
+    "input": "Rs 99 paid. Ref 9876543210",
+    "expected": "Rs 99 paid. Ref 9876543210"
+  },
+  {
+    "name": "long reference is kept",
+    "input": "Ref No 12345678901234567890 for NEFT of Rs 5,000",
+    "expected": "Ref No 12345678901234567890 for NEFT of Rs 5,000"
+  },
+  {
+    "name": "upper-case email is masked",
+    "input": "Statement for A/c XX1234 mailed to RAVI@EXAMPLE.CO.IN",
+    "expected": "Statement for A/c XX1234 mailed to [email]"
+  },
+  {
+    "name": "aadhaar without spaces after the word is masked",
+    "input": "Aadhaar no 234567890123 linked to A/c XX1234",
+    "expected": "[aadhaar] linked to A/c XX1234"
+  },
+  {
+    "name": "aadhaar with dashes is masked",
+    "input": "UID 2345-6789-0123 verified",
+    "expected": "UID [aadhaar] verified"
+  },
+  {
+    "name": "balance and dates are kept",
+    "input": "Avl Bal: INR 1,23,456.78 as on 03-10-2026 14:22:10",
+    "expected": "Avl Bal: INR 1,23,456.78 as on 03-10-2026 14:22:10"
+  },
+  {
+    "name": "hindi text and emoji are kept",
+    "input": "₹150 का भुगतान zomato@hdfcbank को सफल 🎉 UPI Ref 412345678901",
+    "expected": "₹150 का भुगतान zomato@hdfcbank को सफल 🎉 UPI Ref 412345678901"
+  },
+  {
+    "name": "several sensitive values in one message",
+    "input": "Rs 1,249.50 debited from Card 4321 5678 9012 3456; cashback Rs 10 to A/c 50100123451234. Call 9876543210",
+    "expected": "Rs 1,249.50 debited from Card XX3456; cashback Rs 10 to A/c XX1234. Call [phone]"
+  },
+  {
+    "name": "merchant VPA on a bank handle is kept",
+    "input": "Rs 799 to swiggy@icici has FAILED",
+    "expected": "Rs 799 to swiggy@icici has FAILED"
   }
 ]

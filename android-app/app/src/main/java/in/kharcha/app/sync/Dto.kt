@@ -36,6 +36,40 @@ data class BatchResponseDto(val results: List<EventResultDto>)
 @Serializable
 data class EventResultDto(val eventId: String?, val status: String, val reason: String? = null)
 
+/** `GET /v1/cash/balance`. `balancePaise` may be negative; show `text`, never a minus sign. */
+@Serializable
+data class CashBalanceDto(
+    val balancePaise: Long,
+    val inflowPaise: Long,
+    val outflowPaise: Long,
+    val text: String,
+)
+
+@Serializable
+data class TransactionDto(
+    val id: String,
+    val amountPaise: Long,
+    val direction: String,
+    val kind: String,
+    val status: String,
+    val channel: String,
+    val merchantId: String?,
+    val merchantName: String?,
+    val merchantRaw: String?,
+    val category: String,
+    val isEssential: Boolean,
+    val txnTime: String,
+    val userCorrected: Boolean,
+    val version: Int,
+)
+
+@Serializable
+data class TransactionPageDto(val items: List<TransactionDto>, val nextCursor: String?)
+
+/** `PATCH /v1/transactions/{id}` body; null fields are left unchanged by the server. */
+@Serializable
+data class CorrectionDto(val category: String? = null, val merchantName: String? = null)
+
 fun OutboxEvent.toDto(deviceId: String): UploadEventDto {
     val posted = Instant.ofEpochMilli(postedAtMs).toString()
     return UploadEventDto(

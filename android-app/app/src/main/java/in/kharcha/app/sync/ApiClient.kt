@@ -18,6 +18,14 @@ sealed interface UploadResult {
     data class BadRequest(val code: Int) : UploadResult
 }
 
+/** Result of a plain JSON API call. */
+sealed interface ApiResult<out T> {
+    data class Ok<T>(val value: T) : ApiResult<T>
+    data object NotFound : ApiResult<Nothing>
+    data object Unauthorized : ApiResult<Nothing>
+    data class Failed(val reason: String) : ApiResult<Nothing>
+}
+
 @Singleton
 class ApiClient @Inject constructor(private val http: OkHttpClient, private val json: Json) {
 
@@ -43,6 +51,64 @@ class ApiClient @Inject constructor(private val http: OkHttpClient, private val 
                 UploadResult.RetryLater(e.javaClass.simpleName)
             }
         }
+
+    suspend fun cashBalance(serverUrl: String, apiKey: String): ApiResult<CashBalanceDto> =
+        call(Request.Builder().url("$serverUrl/v1/cash/balance").get(), apiKey) {
+            json.decodeFromString(CashBalanceDto.serializer(), it)
+        }
+
+    /** Undo: `entryId` is the outbox event id of a quick-add or widget tap. */
+    suspend fun deleteCash(serverUrl: String, apiKey: String, entryId: String): ApiResult<Unit> =
+        call(Request.Builder().url("$serverUrl/v1/cash/$entryId").delete(), apiKey) { }
+
+    suspend fun transactions(
+        serverUrl: String,
+        apiKey: String,
+        cursor: String?,
+        limit: Int = 50,
+    ): ApiResult<TransactionPageDto> {
+        val url = buildString {
+            append("$serverUrl/v1/transactions?limit=$limit")
+            if (cursor != null) append("&cursor=").append(java.net.URLEncoder.encode(cursor, "UTF-8"))
+        }
+        return call(Request.Builder().url(url).get(), apiKey) {
+            json.decodeFromString(TransactionPageDto.serializer(), it)
+        }
+    }
+
+    suspend fun correct(
+        serverUrl: String,
+        apiKey: String,
+        transactionId: String,
+        correction: CorrectionDto,
+    ): ApiResult<TransactionDto> {
+        val body = json.encodeToString(CorrectionDto.serializer(), correction).toRequestBody(JSON)
+        return call(Request.Builder().url("$serverUrl/v1/transactions/$transactionId").patch(body), apiKey) {
+            json.decodeFromString(TransactionDto.serializer(), it)
+        }
+    }
+
+    private suspend fun <T> call(
+        builder: Request.Builder,
+        apiKey: String,
+        decode: (String) -> T,
+    ): ApiResult<T> = withContext(Dispatchers.IO) {
+        val request = builder.header("Authorization", "Bearer $apiKey").build()
+        try {
+            http.newCall(request).execute().use { response ->
+                when {
+                    response.isSuccessful -> ApiResult.Ok(decode(response.body?.string().orEmpty()))
+                    response.code == 404 -> ApiResult.NotFound
+                    response.code == 401 || response.code == 403 -> ApiResult.Unauthorized
+                    else -> ApiResult.Failed("HTTP ${response.code}")
+                }
+            }
+        } catch (e: IOException) {
+            ApiResult.Failed(e.javaClass.simpleName)
+        } catch (e: kotlinx.serialization.SerializationException) {
+            ApiResult.Failed("bad response")
+        }
+    }
 
     private companion object {
         val JSON = "application/json".toMediaType()

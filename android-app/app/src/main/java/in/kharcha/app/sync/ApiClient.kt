@@ -61,6 +61,23 @@ class ApiClient @Inject constructor(private val http: OkHttpClient, private val 
     suspend fun deleteCash(serverUrl: String, apiKey: String, entryId: String): ApiResult<Unit> =
         call(Request.Builder().url("$serverUrl/v1/cash/$entryId").delete(), apiKey) { }
 
+    suspend fun forecast(
+        serverUrl: String,
+        apiKey: String,
+        skip: String? = null,
+        reductionPct: Int = 100,
+        balancePaise: Long? = null,
+    ): ApiResult<ForecastDto> {
+        val url = buildString {
+            append("$serverUrl/v1/forecast?reductionPct=$reductionPct")
+            if (skip != null) append("&skip=$skip")
+            if (balancePaise != null) append("&balancePaise=$balancePaise")
+        }
+        return call(Request.Builder().url(url).get(), apiKey) {
+            json.decodeFromString(ForecastDto.serializer(), it)
+        }
+    }
+
     suspend fun transactions(
         serverUrl: String,
         apiKey: String,

@@ -55,7 +55,11 @@
   - [ ] on a phone: widget tap -> cash balance; correction sticks for the next payment
 
 ## Phase 3 — Forecast, harness, friends
-- [ ] W7 Forecast + what-if + backtest
+- [x] W7 Forecast + what-if + backtest
+  - [x] Monte Carlo + recurring detection + what-if (pure, Hypothesis), `GET /v1/forecast`,
+        BROKE_DATE_MOVED trigger, `kharcha-eval forecast` (synthetic: 67.8% ±3 d, MAE 4.9 d)
+  - [x] Android Home tab: broke-date range card, "what if I cut…" chips + slider, one-time balance ask
+  - [ ] real backtest once there are 60+ days of my own history
 - [ ] W8 Agent runtime (limits, permissions, transcripts, grounding, replay) + Coach v1 + policy gate
 - [ ] W9 Firebase auth + import-linter contracts + early cloud deploy + friends onboarded with consent
 

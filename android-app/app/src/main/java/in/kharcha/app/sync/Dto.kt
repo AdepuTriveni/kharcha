@@ -70,6 +70,36 @@ data class TransactionPageDto(val items: List<TransactionDto>, val nextCursor: S
 @Serializable
 data class CorrectionDto(val category: String? = null, val merchantName: String? = null)
 
+@Serializable
+data class CategorySpendDto(val category: String, val dailyAvgPaise: Long)
+
+@Serializable
+data class WhatIfDto(
+    val category: String,
+    val reductionPct: Int,
+    val brokeP50: String?,
+    val daysGained: Int?,
+)
+
+/** `GET /v1/forecast` (PROJECT_SPEC §14). Dates are IST calendar days (yyyy-MM-dd). */
+@Serializable
+data class ForecastDto(
+    val status: String,
+    val moneyNowPaise: Long? = null,
+    val bankPaise: Long? = null,
+    val cashPaise: Long? = null,
+    val balanceFresh: Boolean? = null,
+    val brokeP20: String? = null,
+    val brokeP50: String? = null,
+    val brokeP80: String? = null,
+    val daysLeftP50: Int? = null,
+    val probBroke: Double? = null,
+    val horizonDays: Int? = null,
+    val dailySpendP50Paise: Long? = null,
+    val topCategories: List<CategorySpendDto> = emptyList(),
+    val whatIf: WhatIfDto? = null,
+)
+
 fun OutboxEvent.toDto(deviceId: String): UploadEventDto {
     val posted = Instant.ofEpochMilli(postedAtMs).toString()
     return UploadEventDto(

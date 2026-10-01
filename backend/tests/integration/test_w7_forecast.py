@@ -192,7 +192,7 @@ async def test_forecast_endpoint_and_what_if(env: Env) -> None:
     assert what_if["daysGained"] == 11  # half the spend, twice the days
 
     async with env.sessions() as session:
-        stored = (await session.execute(sa.text("SELECT count(*) FROM forecasts"))).scalar_one()
+        stored: int = (await session.execute(sa.text("SELECT count(*) FROM forecasts"))).scalar_one()
     assert stored == 1  # plain GET stores; what-if does not
     assert now
 

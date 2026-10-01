@@ -100,6 +100,31 @@ data class ForecastDto(
     val whatIf: WhatIfDto? = null,
 )
 
+@Serializable
+data class BudgetDto(val category: String, val monthlyLimitPaise: Long)
+
+/** `GET/PUT /v1/settings` (PROJECT_SPEC §9, §28.5). Consent flags are explicit opt-ins. */
+@Serializable
+data class UserSettingsDto(
+    val userId: String,
+    val displayName: String? = null,
+    val roastLevel: String,
+    val quietStart: String,
+    val quietEnd: String,
+    val mlConsent: Boolean,
+    val experimentOptIn: Boolean,
+    val telegramLinked: Boolean,
+    val budgets: List<BudgetDto> = emptyList(),
+)
+
+/** Only non-null fields change on the server. */
+@Serializable
+data class UserSettingsUpdateDto(
+    val roastLevel: String? = null,
+    val mlConsent: Boolean? = null,
+    val experimentOptIn: Boolean? = null,
+)
+
 fun OutboxEvent.toDto(deviceId: String): UploadEventDto {
     val posted = Instant.ofEpochMilli(postedAtMs).toString()
     return UploadEventDto(

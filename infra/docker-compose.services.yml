@@ -1,0 +1,59 @@
+# Backend services on top of the infra stack (early cloud deploy, PROJECT_SPEC §31, W9).
+#   docker compose -f infra/docker-compose.yml -f infra/docker-compose.services.yml up -d --build
+# Secrets (API keys, Telegram token, Firebase project) come from backend/.env, never from git.
+x-backend: &backend
+  build:
+    context: ..
+    dockerfile: backend/Dockerfile
+  image: kharcha-backend:local
+  restart: unless-stopped
+  env_file:
+    - path: ../backend/.env
+      required: false
+  environment:
+    KHARCHA_ENV: prod
+    KHARCHA_DATABASE_URL: postgresql+asyncpg://kharcha:${POSTGRES_PASSWORD:-kharcha}@postgres:5432/kharcha
+    KHARCHA_KAFKA_BOOTSTRAP_SERVERS: kafka:19092
+    KHARCHA_REDIS_URL: redis://redis:6379/0
+    KHARCHA_OLLAMA_API_BASE: ${OLLAMA_API_BASE:-http://host.docker.internal:11434}
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  depends_on:
+    migrate:
+      condition: service_completed_successfully
+    kafka-init:
+      condition: service_completed_successfully
+    redis:
+      condition: service_started
+
+services:
+  migrate:
+    <<: *backend
+    restart: "no"
+    command: ["sh", "-c", "alembic upgrade head && kharcha-admin seed-merchants"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  ingest:
+    <<: *backend
+    command: ["kharcha-ingest"]
+    ports:
+      - "8000:8000"
+
+  processor:
+    <<: *backend
+    command: ["kharcha-processor"]
+
+  insights:
+    <<: *backend
+    command: ["kharcha-insights"]
+
+  agents:
+    <<: *backend
+    command: ["kharcha-agents"]
+
+  notifier:
+    <<: *backend
+    command: ["kharcha-notifier"]
+    profiles: ["telegram"]  # needs KHARCHA_TELEGRAM_BOT_TOKEN in backend/.env

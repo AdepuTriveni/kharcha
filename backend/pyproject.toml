@@ -31,6 +31,7 @@ dev = [
     "types-jsonschema",
     "fakeredis>=2.26",
     "types-pyyaml",
+    "import-linter>=2.1",
 ]
 
 [tool.uv]
@@ -98,3 +99,40 @@ asyncio_default_fixture_loop_scope = "function"
 markers = [
     "integration: needs Docker (testcontainers) or local services such as Ollama",
 ]
+
+# ---------------------------------------------------------------- import-linter (CLAUDE.md, §28.2)
+[tool.importlinter]
+root_packages = [
+    "kharcha_common", "kharcha_ingest", "kharcha_processor", "kharcha_notifier",
+    "kharcha_insights", "kharcha_agents", "kharcha_runtime", "kharcha_mcp_finance",
+    "kharcha_mcp_notify",
+]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Agent code and the runtime never touch the database (tools only)"
+type = "forbidden"
+source_modules = ["kharcha_agents.coach", "kharcha_runtime"]
+forbidden_modules = ["kharcha_common.db", "sqlalchemy", "asyncpg"]
+# The in-process executor opens a session for tool handlers; replaced by MCP clients in W13.
+ignore_imports = ["kharcha_runtime.tools -> sqlalchemy"]
+
+[[tool.importlinter.contracts]]
+name = "kharcha_common is the bottom layer"
+type = "forbidden"
+source_modules = ["kharcha_common"]
+forbidden_modules = [
+    "kharcha_ingest", "kharcha_processor", "kharcha_notifier", "kharcha_insights",
+    "kharcha_agents", "kharcha_runtime", "kharcha_mcp_finance", "kharcha_mcp_notify",
+]
+
+[[tool.importlinter.contracts]]
+name = "Services do not import each other's internals"
+type = "independence"
+modules = ["kharcha_processor", "kharcha_notifier", "kharcha_ingest"]
+
+[[tool.importlinter.contracts]]
+name = "Tool servers never import agents or the notifier"
+type = "forbidden"
+source_modules = ["kharcha_mcp_finance", "kharcha_mcp_notify"]
+forbidden_modules = ["kharcha_agents", "kharcha_notifier", "kharcha_ingest"]

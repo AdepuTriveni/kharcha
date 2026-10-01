@@ -1,0 +1,15 @@
+**/.venv
+**/__pycache__
+**/.mypy_cache
+**/.ruff_cache
+**/.pytest_cache
+**/.hypothesis
+**/.import_linter_cache
+**/.env
+**/.env.*
+android-app
+docs
+backend/reports
+ml/data
+!ml/data/samples
+.git

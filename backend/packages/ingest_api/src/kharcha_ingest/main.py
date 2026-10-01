@@ -13,7 +13,8 @@ from kharcha_common.db import make_engine, make_sessionmaker
 from kharcha_common.kafka import BrokerPublisher, EventPublisher, make_broker
 from kharcha_common.logging import configure_logging
 from kharcha_common.settings import Settings, get_settings
-from kharcha_ingest import cash, events, forecast, telegram, transactions
+from kharcha_ingest import cash, events, forecast, me, telegram, transactions
+from kharcha_ingest.firebase import FirebaseVerifier
 
 
 class Health(BaseModel):
@@ -25,6 +26,7 @@ def create_app(
     settings: Settings | None = None,
     publisher: EventPublisher | None = None,
     redis: Redis | None = None,
+    firebase: FirebaseVerifier | None = None,
 ) -> FastAPI:
     """Build the app. Pass ``publisher``/``redis`` in tests to avoid real connections."""
     settings = settings or get_settings()
@@ -52,11 +54,15 @@ def create_app(
 
     app = FastAPI(title="Kharcha ingest-api", version="0.1.0", lifespan=lifespan)
     app.state.settings = settings
+    if firebase is None and settings.firebase_project_id:
+        firebase = FirebaseVerifier(settings.firebase_project_id)
+    app.state.firebase = firebase
     app.include_router(events.router)
     app.include_router(telegram.router)
     app.include_router(cash.router)
     app.include_router(transactions.router)
     app.include_router(forecast.router)
+    app.include_router(me.router)
     app.mount("/metrics", make_asgi_app())
 
     @app.get("/healthz")

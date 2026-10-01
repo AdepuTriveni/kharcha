@@ -10,6 +10,7 @@ dependencies = [
     "uvicorn[standard]>=0.34",
     "prometheus-client>=0.21",
     "redis>=5.2",
+    "pyjwt[crypto]>=2.10",
 ]
 
 [project.scripts]

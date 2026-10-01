@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     # Phase 1 auth: static per-user API keys, stored as {sha256(key) hex: user_id}.
     # Generate with `uv run kharcha-admin create-user`. Replaced by Firebase in W9.
     api_keys: dict[str, str] = {}
+    # W9: Firebase project id; when set, Bearer JWTs are verified as Firebase ID tokens.
+    firebase_project_id: str | None = None
 
     metrics_port: int = 8001
 

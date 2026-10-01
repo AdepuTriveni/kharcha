@@ -67,6 +67,17 @@
         `agent-results`; Sunday 11:00 weekly review; ADR-008; unit + integration tests
   - [ ] with Ollama: check real Coach messages (`ollama pull qwen2.5:1.5b`, `kharcha-agents`)
 - [ ] W9 Firebase auth + import-linter contracts + early cloud deploy + friends onboarded with consent
+  - [x] Firebase ID-token verification (PyJWT + Google certs, same checks as firebase-admin), user
+        created on first sign-in; API keys still work
+  - [x] import-linter: 4 contracts in CI (agents/runtime never touch the DB, common is the bottom layer,
+        services independent, tool servers never import agents)
+  - [x] `GET/PUT /v1/settings` (roast level, quiet hours, budgets, ML consent + experiment opt-in),
+        `DELETE /v1/me`; Android consent switches + delete-my-data
+  - [x] backend Dockerfile + `infra/docker-compose.services.yml`; whole stack verified in Docker
+        (SMS upload -> RULE parse -> Zomato/FOOD_DELIVERY)
+  - [ ] YOU: create a Firebase project (Auth: phone/Google), add `google-services.json` to the app,
+        set `KHARCHA_FIREBASE_PROJECT_ID`; then I wire the Android sign-in screen
+  - [ ] YOU: a cloud VM (Oracle/AWS free tier) to run the compose stack; onboard friends
 
 ## Phase 4 — Own model (Pillar 1)
 - [ ] W10 Synthetic generator, distillation, review queue, template splits, dataset card, leakage test

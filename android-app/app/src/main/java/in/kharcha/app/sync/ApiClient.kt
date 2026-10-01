@@ -61,6 +61,26 @@ class ApiClient @Inject constructor(private val http: OkHttpClient, private val 
     suspend fun deleteCash(serverUrl: String, apiKey: String, entryId: String): ApiResult<Unit> =
         call(Request.Builder().url("$serverUrl/v1/cash/$entryId").delete(), apiKey) { }
 
+    suspend fun userSettings(serverUrl: String, apiKey: String): ApiResult<UserSettingsDto> =
+        call(Request.Builder().url("$serverUrl/v1/settings").get(), apiKey) {
+            json.decodeFromString(UserSettingsDto.serializer(), it)
+        }
+
+    suspend fun updateUserSettings(
+        serverUrl: String,
+        apiKey: String,
+        update: UserSettingsUpdateDto,
+    ): ApiResult<UserSettingsDto> {
+        val body = SPARSE.encodeToString(UserSettingsUpdateDto.serializer(), update).toRequestBody(JSON)
+        return call(Request.Builder().url("$serverUrl/v1/settings").put(body), apiKey) {
+            json.decodeFromString(UserSettingsDto.serializer(), it)
+        }
+    }
+
+    /** `DELETE /v1/me`: removes everything the server holds for this user. */
+    suspend fun deleteMe(serverUrl: String, apiKey: String): ApiResult<Unit> =
+        call(Request.Builder().url("$serverUrl/v1/me").delete(), apiKey) { }
+
     suspend fun forecast(
         serverUrl: String,
         apiKey: String,
@@ -129,5 +149,6 @@ class ApiClient @Inject constructor(private val http: OkHttpClient, private val 
 
     private companion object {
         val JSON = "application/json".toMediaType()
+        val SPARSE = Json { explicitNulls = false }
     }
 }

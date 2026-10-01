@@ -48,3 +48,4 @@ infra/terraform/.terraform/
 .DS_Store
 Thumbs.db
 backend/reports/
+.import_linter_cache/

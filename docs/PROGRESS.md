@@ -12,7 +12,7 @@
 - [x] Repo skeleton + uv workspace (common, ingest_api)
 - [x] docker-compose + topic init script
 - [x] Alembic 0001_core
-- [ ] CI: ruff, mypy, pytest (backend + ml), Android build
+- [x] CI: ruff, mypy, pytest (backend + ml), Android build (green on GitHub, run #2)
 - [ ] Ollama smoke test via LiteLLM
 - [x] `ml/` separate uv project skeleton
 
@@ -37,7 +37,8 @@
 - [ ] W4 Dedup, merchants, categories, labeling CLI, first parsing eval
   - [x] dedup + special cases, ~170 seed merchants, categories (unit + integration tests)
   - [x] labeling CLI (`kharcha-label`), template signatures, metrics, synthetic sample set
-  - [ ] `kharcha-admin export-labeling` + `kharcha-eval parsing` report
+  - [x] `kharcha-admin export-labeling` (consent-only, re-scrubbed) + `kharcha-eval parsing` (JSON/MD + eval_runs)
+  - [ ] first real parsing report: needs `ollama pull qwen2.5:1.5b` and some labeled messages
 - [ ] W5 Rules + synthesis + shadow + DLTs + metrics
 - [ ] W6 Cash wallet, quick-add, widget, redaction corpus, corrections
 
@@ -87,9 +88,7 @@
   §7.3 leaves parts of them loose (`memoryWrites: [..]`, `drafts: [..]`).
 - Phase 0: SQLAlchemy ORM models are added per table when a service first uses them (W2);
   Alembic `0001_core` is the schema source.
-- Phase 0: Android CI job skips until `android-app/gradlew` exists (W1).
 - Phase 0: kafka-ui, Temporal, Prometheus and Grafana images use `latest`; pin tags in Phase 9.
-- Phase 0: CI workflow written; tick after its first green run on GitHub.
 - Phase 0: LLM smoke test skips until `ollama pull qwen2.5:1.5b` is done.
 - W2: a temporary `processor.txn-writer` turns each parsed transaction into one row
   (category OTHER) and publishes `clean-transactions`; W4 dedup/merchants/categories replace it.
@@ -102,4 +101,8 @@
 - W3 decisions: added BUDGET/FREQUENCY/BROKE_DATE_MOVED triggers + `dedupeKey` to AgentTaskPayload;
   temporary coach consumer in notifier until W8; notifier listens to cash-events for confirmations;
   thin httpx Telegram client (ADR-010 to write).
+- W4: Alembic `0002_ai` added now (all §8 AI tables) because `kharcha-eval` writes `eval_runs`.
+- W4: `kharcha-agents` depends on `kharcha-ml` (path dep) to share parsing metrics; ml must keep
+  heavy training deps in optional groups. `kharcha_agents.evals` touches the DB directly; exempt it
+  in the import-linter contract (W9) -- the "agents use MCP only" rule is for agent code.
 - Phase 0: Temporal runs the dev server (SQLite) locally; the Helm chart is used in Phase 9.

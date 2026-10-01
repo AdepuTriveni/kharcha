@@ -3,6 +3,7 @@
     uv run kharcha-admin create-user --name "Me"
     uv run kharcha-admin link-code --user u_1234abcd
     uv run kharcha-admin seed-merchants
+    uv run kharcha-admin export-labeling --out ../ml/data/raw/events.jsonl
 
 Prints the key once (put it in the app) and the settings entry for the server.
 """
@@ -12,6 +13,7 @@ import asyncio
 import json
 import secrets
 import sys
+from pathlib import Path
 
 from redis.asyncio import Redis
 from sqlalchemy.dialects.postgresql import insert
@@ -21,6 +23,7 @@ from kharcha_common.db.models import User
 from kharcha_common.linking import create_link_code
 from kharcha_common.merchants import seed_merchants
 from kharcha_common.settings import get_settings
+from kharcha_ingest import labeling
 from kharcha_ingest.auth import hash_api_key, new_api_key
 
 
@@ -44,6 +47,15 @@ async def load_seeds() -> int:
         await engine.dispose()
 
 
+async def export_labeling(out: Path) -> int:
+    engine = make_engine(get_settings())
+    try:
+        async with make_sessionmaker(engine)() as session:
+            return labeling.write(out, await labeling.collect(session))
+    finally:
+        await engine.dispose()
+
+
 async def link_code(user_id: str) -> str:
     redis = Redis.from_url(get_settings().redis_url, decode_responses=True)
     try:
@@ -61,7 +73,14 @@ def main(argv: list[str] | None = None) -> int:
     link = sub.add_parser("link-code", help="print a Telegram link code for a user")
     link.add_argument("--user", required=True)
     sub.add_parser("seed-merchants", help="load backend/seeds/seed-merchants.yaml")
+    export = sub.add_parser("export-labeling", help="consenting users' events for labeling")
+    export.add_argument("--out", type=Path, default=Path("../ml/data/raw/events.jsonl"))
     args = parser.parse_args(argv)
+
+    if args.command == "export-labeling":
+        count = asyncio.run(export_labeling(args.out))
+        sys.stdout.write(f"exported {count} events to {args.out}\n")
+        return 0
 
     if args.command == "seed-merchants":
         sys.stdout.write(f"seeded {asyncio.run(load_seeds())} merchants\n")

@@ -28,6 +28,16 @@ CORE_TABLES = {
     "alert_feedback",
     "refund_cases",
 }
+AI_TABLES = {
+    "agent_runs",
+    "memories",
+    "risk_scores",
+    "nudge_decisions",
+    "bandit_state",
+    "model_versions",
+    "eval_runs",
+}
+ALL_TABLES = CORE_TABLES | AI_TABLES
 
 
 def _tables(sync_url: str) -> set[str]:
@@ -43,13 +53,16 @@ def test_upgrade_and_downgrade(postgres: PostgresContainer) -> None:
     cfg = alembic_config(urls.async_url)
 
     command.upgrade(cfg, "head")
+    assert _tables(urls.sync_url) == ALL_TABLES
+
+    command.downgrade(cfg, "0001_core")
     assert _tables(urls.sync_url) == CORE_TABLES
 
     command.downgrade(cfg, "base")
     assert _tables(urls.sync_url) == set()
 
     command.upgrade(cfg, "head")
-    assert _tables(urls.sync_url) == CORE_TABLES
+    assert _tables(urls.sync_url) == ALL_TABLES
 
 
 def test_orm_models_match_migrations(postgres: PostgresContainer) -> None:

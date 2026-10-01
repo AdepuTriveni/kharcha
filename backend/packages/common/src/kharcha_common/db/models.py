@@ -138,3 +138,14 @@ class TransactionSource(Base):
     raw_event_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("raw_events.event_id"), primary_key=True
     )
+
+
+class EvalRun(Base):
+    __tablename__ = "eval_runs"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    suite: Mapped[str] = mapped_column(Text)  # PARSER|ASK|AGENT|FORECAST|RISK
+    subject: Mapped[str] = mapped_column(Text)
+    metrics: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    git_sha: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(TZ, server_default="now()")

@@ -9,6 +9,7 @@ dependencies = [
     "kharcha-processor",
     "kharcha-notifier",
     "kharcha-insights",
+    "kharcha-agents",
     "alembic>=1.14",
 ]
 
@@ -41,6 +42,7 @@ kharcha-ingest-api = { workspace = true }
 kharcha-processor = { workspace = true }
 kharcha-notifier = { workspace = true }
 kharcha-insights = { workspace = true }
+kharcha-agents = { workspace = true }
 
 # ---------------------------------------------------------------- ruff
 [tool.ruff]
@@ -61,6 +63,7 @@ ignore = [
 [tool.ruff.lint.isort]
 known-first-party = [
     "kharcha_common", "kharcha_ingest", "kharcha_processor", "kharcha_notifier", "kharcha_insights",
+    "kharcha_agents", "kharcha_ml",
 ]
 
 # ---------------------------------------------------------------- mypy

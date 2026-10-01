@@ -47,3 +47,4 @@ infra/terraform/.terraform/
 .vscode/
 .DS_Store
 Thumbs.db
+backend/reports/

@@ -6,6 +6,7 @@ from faststream import AckPolicy, FastStream
 from faststream.confluent import KafkaBroker
 from faststream.confluent.annotations import KafkaMessage
 from prometheus_client import start_http_server
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from kharcha_agents.orchestrator import ORCHESTRATOR_CONSUMER, AgentsDeps, handle_agent_task
 from kharcha_common.db import make_engine, make_sessionmaker
@@ -14,22 +15,46 @@ from kharcha_common.logging import configure_logging
 from kharcha_common.settings import Settings, get_settings
 from kharcha_common.topics import Topic
 from kharcha_mcp_finance.tools import TOOLS as FINANCE_TOOLS
+from kharcha_mcp_kit.client import McpToolExecutor
+from kharcha_mcp_kit.identity import ServiceTokens
+from kharcha_mcp_memory.server import configure_embedder
+from kharcha_mcp_memory.tools import TOOLS as MEMORY_TOOLS
 from kharcha_mcp_notify.tools import TOOLS as NOTIFY_TOOLS
+from kharcha_mcp_refund.tools import TOOLS as REFUND_TOOLS
 from kharcha_runtime.config import load_agent_config
 from kharcha_runtime.models import LiteLLMModel
 from kharcha_runtime.tools import InProcessExecutor
+from kharcha_runtime.types import ToolExecutor
+
+ALL_TOOLS = FINANCE_TOOLS | NOTIFY_TOOLS | MEMORY_TOOLS | REFUND_TOOLS
+
+
+def build_executor(settings: Settings, sessions: async_sessionmaker[AsyncSession]) -> ToolExecutor:
+    """MCP clients when the tool servers are configured (W13), else the same handlers in-process."""
+    servers = [
+        (FINANCE_TOOLS, settings.mcp_finance_url),
+        (NOTIFY_TOOLS, settings.mcp_notify_url),
+        (MEMORY_TOOLS, settings.mcp_memory_url),
+        (REFUND_TOOLS, settings.mcp_refund_url),
+    ]
+    if settings.service_token_secret and all(url for _, url in servers):
+        routes = {name: str(url) for tools, url in servers for name in tools}
+        return McpToolExecutor(routes, ServiceTokens(settings.service_token_secret))
+    configure_embedder(settings)
+    return InProcessExecutor(sessions, ALL_TOOLS)
 
 
 def build_deps(settings: Settings, publisher: BrokerPublisher) -> AgentsDeps:
     sessions = make_sessionmaker(make_engine(settings))
-    executor = InProcessExecutor(sessions, FINANCE_TOOLS | NOTIFY_TOOLS)
+    executor = build_executor(settings, sessions)
     config, models = load_agent_config("coach", settings.llm_model)
     model = (
         LiteLLMModel(models, settings.ollama_api_base, settings.llm_timeout_s)
         if settings.coach_llm_enabled
         else None
     )
-    return AgentsDeps(sessions, publisher, executor, executor.specs, config, model)
+    specs = [t.spec for t in ALL_TOOLS.values()]
+    return AgentsDeps(sessions, publisher, executor, specs, config, model)
 
 
 def build_broker(settings: Settings) -> KafkaBroker:

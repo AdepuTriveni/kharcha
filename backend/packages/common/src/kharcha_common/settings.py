@@ -41,6 +41,24 @@ class Settings(BaseSettings):
     # Phase 1 auth: static per-user API keys, stored as {sha256(key) hex: user_id}.
     # Generate with `uv run kharcha-admin create-user`. Replaced by Firebase in W9.
     api_keys: dict[str, str] = {}
+    # W13 MCP (§17.3): shared secret for per-task service tokens, and where each tool server
+    # listens. URLs unset -> agents call the same tool handlers in-process.
+    service_token_secret: str | None = None
+    mcp_finance_url: str | None = None
+    mcp_notify_url: str | None = None
+    mcp_memory_url: str | None = None
+    mcp_refund_url: str | None = None
+    mcp_allowed_hosts: list[str] = [
+        "localhost:*",
+        "127.0.0.1:*",
+        "mcp-finance:*",
+        "mcp-notify:*",
+        "mcp-memory:*",
+        "mcp-refund:*",
+    ]
+    # Memory embeddings (§20): "hash" works offline; "ollama" uses embedding_model (768-d).
+    embedding_backend: Literal["hash", "ollama"] = "hash"
+    embedding_model: str = "nomic-embed-text"
     # W9: Firebase project id; when set, Bearer JWTs are verified as Firebase ID tokens.
     firebase_project_id: str | None = None
 

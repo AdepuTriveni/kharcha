@@ -16,6 +16,12 @@ x-backend: &backend
     KHARCHA_KAFKA_BOOTSTRAP_SERVERS: kafka:19092
     KHARCHA_REDIS_URL: redis://redis:6379/0
     KHARCHA_OLLAMA_API_BASE: ${OLLAMA_API_BASE:-http://host.docker.internal:11434}
+    # Agents call the tool servers over MCP with per-task service tokens (§17.3).
+    KHARCHA_SERVICE_TOKEN_SECRET: ${SERVICE_TOKEN_SECRET:-local-dev-service-token-secret-change-me}
+    KHARCHA_MCP_FINANCE_URL: http://mcp-finance:8101/mcp
+    KHARCHA_MCP_NOTIFY_URL: http://mcp-notify:8102/mcp
+    KHARCHA_MCP_MEMORY_URL: http://mcp-memory:8103/mcp
+    KHARCHA_MCP_REFUND_URL: http://mcp-refund:8104/mcp
   extra_hosts:
     - "host.docker.internal:host-gateway"
   depends_on:
@@ -52,6 +58,29 @@ services:
   agents:
     <<: *backend
     command: ["kharcha-agents"]
+
+  mcp-finance:
+    <<: *backend
+    command: ["kharcha-mcp-finance"]
+
+  mcp-notify:
+    <<: *backend
+    command: ["kharcha-mcp-notify"]
+
+  mcp-memory:
+    <<: *backend
+    command: ["kharcha-mcp-memory"]
+
+  mcp-refund:
+    <<: *backend
+    command: ["kharcha-mcp-refund"]
+
+  # The user's own assistants (§24): personal token from POST /v1/mcp-tokens as Bearer.
+  mcp-external:
+    <<: *backend
+    command: ["kharcha-mcp-external"]
+    ports:
+      - "8105:8105"
 
   notifier:
     <<: *backend

@@ -5,11 +5,10 @@ from typing import Protocol
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from kharcha_agents.main import ALL_TOOLS
 from kharcha_agents.orchestrator import AgentsDeps, handle_agent_task
 from kharcha_common.kafka import EventPublisher
 from kharcha_common.topics import Topic
-from kharcha_mcp_finance.tools import TOOLS as FINANCE_TOOLS
-from kharcha_mcp_notify.tools import TOOLS as NOTIFY_TOOLS
 from kharcha_notifier.bot import BotDeps
 from kharcha_notifier.results import handle_agent_result
 from kharcha_runtime.config import load_agent_config
@@ -24,7 +23,7 @@ class Queues(EventPublisher, Protocol):
 def agents_deps(
     sessions: async_sessionmaker[AsyncSession], publisher: Queues, model: Model | None = None
 ) -> AgentsDeps:
-    executor = InProcessExecutor(sessions, FINANCE_TOOLS | NOTIFY_TOOLS)
+    executor = InProcessExecutor(sessions, ALL_TOOLS)
     config, _ = load_agent_config("coach", "test-model")
     return AgentsDeps(sessions, publisher, executor, executor.specs, config, model)
 

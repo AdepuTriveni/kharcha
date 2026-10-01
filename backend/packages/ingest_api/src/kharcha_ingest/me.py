@@ -134,6 +134,7 @@ _DELETE_STATEMENTS = (
     "(SELECT id FROM transactions WHERE user_id = :u)",
     "DELETE FROM transactions WHERE user_id = :u",
     "DELETE FROM user_merchant_overrides WHERE user_id = :u",
+    "DELETE FROM mcp_tokens WHERE user_id = :u",
     "DELETE FROM budgets WHERE user_id = :u",
     "DELETE FROM devices WHERE user_id = :u",
     "DELETE FROM raw_events WHERE user_id = :u",

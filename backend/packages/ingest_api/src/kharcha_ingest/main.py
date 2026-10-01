@@ -13,7 +13,16 @@ from kharcha_common.db import make_engine, make_sessionmaker
 from kharcha_common.kafka import BrokerPublisher, EventPublisher, make_broker
 from kharcha_common.logging import configure_logging
 from kharcha_common.settings import Settings, get_settings
-from kharcha_ingest import cash, events, forecast, me, models_api, telegram, transactions
+from kharcha_ingest import (
+    cash,
+    events,
+    forecast,
+    mcp_tokens_api,
+    me,
+    models_api,
+    telegram,
+    transactions,
+)
 from kharcha_ingest.firebase import FirebaseVerifier
 
 
@@ -64,6 +73,7 @@ def create_app(
     app.include_router(forecast.router)
     app.include_router(me.router)
     app.include_router(models_api.router)
+    app.include_router(mcp_tokens_api.router)
     app.mount("/metrics", make_asgi_app())
 
     @app.get("/healthz")

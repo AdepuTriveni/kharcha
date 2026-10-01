@@ -37,7 +37,7 @@ AI_TABLES = {
     "model_versions",
     "eval_runs",
 }
-ALL_TABLES = CORE_TABLES | AI_TABLES | {"user_merchant_overrides"}
+ALL_TABLES = CORE_TABLES | AI_TABLES | {"user_merchant_overrides", "mcp_tokens"}
 
 
 def _tables(sync_url: str) -> set[str]:

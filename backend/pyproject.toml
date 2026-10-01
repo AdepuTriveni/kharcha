@@ -13,6 +13,9 @@ dependencies = [
     "kharcha-agent-runtime",
     "kharcha-mcp-finance",
     "kharcha-mcp-notify",
+    "kharcha-mcp-memory",
+    "kharcha-mcp-refund",
+    "kharcha-mcp-kit",
     "alembic>=1.14",
 ]
 
@@ -50,6 +53,9 @@ kharcha-agents = { workspace = true }
 kharcha-agent-runtime = { workspace = true }
 kharcha-mcp-finance = { workspace = true }
 kharcha-mcp-notify = { workspace = true }
+kharcha-mcp-memory = { workspace = true }
+kharcha-mcp-refund = { workspace = true }
+kharcha-mcp-kit = { workspace = true }
 
 # ---------------------------------------------------------------- ruff
 [tool.ruff]
@@ -71,6 +77,7 @@ ignore = [
 known-first-party = [
     "kharcha_common", "kharcha_ingest", "kharcha_processor", "kharcha_notifier", "kharcha_insights",
     "kharcha_agents", "kharcha_ml", "kharcha_runtime", "kharcha_mcp_finance", "kharcha_mcp_notify",
+    "kharcha_mcp_memory", "kharcha_mcp_refund", "kharcha_mcp_kit",
 ]
 
 # ---------------------------------------------------------------- mypy
@@ -105,7 +112,7 @@ markers = [
 root_packages = [
     "kharcha_common", "kharcha_ingest", "kharcha_processor", "kharcha_notifier",
     "kharcha_insights", "kharcha_agents", "kharcha_runtime", "kharcha_mcp_finance",
-    "kharcha_mcp_notify",
+    "kharcha_mcp_notify", "kharcha_mcp_memory", "kharcha_mcp_refund", "kharcha_mcp_kit",
 ]
 include_external_packages = true
 
@@ -124,6 +131,7 @@ source_modules = ["kharcha_common"]
 forbidden_modules = [
     "kharcha_ingest", "kharcha_processor", "kharcha_notifier", "kharcha_insights",
     "kharcha_agents", "kharcha_runtime", "kharcha_mcp_finance", "kharcha_mcp_notify",
+    "kharcha_mcp_memory", "kharcha_mcp_refund", "kharcha_mcp_kit",
 ]
 
 [[tool.importlinter.contracts]]
@@ -134,5 +142,7 @@ modules = ["kharcha_processor", "kharcha_notifier", "kharcha_ingest"]
 [[tool.importlinter.contracts]]
 name = "Tool servers never import agents or the notifier"
 type = "forbidden"
-source_modules = ["kharcha_mcp_finance", "kharcha_mcp_notify"]
+source_modules = [
+    "kharcha_mcp_finance", "kharcha_mcp_notify", "kharcha_mcp_memory", "kharcha_mcp_refund",
+]
 forbidden_modules = ["kharcha_agents", "kharcha_notifier", "kharcha_ingest"]

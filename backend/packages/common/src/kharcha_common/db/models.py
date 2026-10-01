@@ -4,7 +4,8 @@ import uuid
 from datetime import date, datetime, time
 from typing import Any
 
-from sqlalchemy import BigInteger, Boolean, Date, ForeignKey, Integer, Text, Time
+from pgvector.sqlalchemy import Vector
+from sqlalchemy import REAL, BigInteger, Boolean, Date, ForeignKey, Integer, Text, Time
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -227,3 +228,56 @@ class ModelVersion(Base):
     eval_report: Mapped[dict[str, Any]] = mapped_column(JSONB)
     status: Mapped[str] = mapped_column(Text)  # CANDIDATE|SHADOW|ACTIVE|RETIRED
     created_at: Mapped[datetime] = mapped_column(TZ, server_default="now()")
+
+
+EMBEDDING_DIM = 768  # must match the embedding model (0002_ai: vector(768))
+
+
+class Memory(Base):
+    __tablename__ = "memories"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    user_id: Mapped[str] = mapped_column(Text, ForeignKey("users.id"))
+    kind: Mapped[str] = mapped_column(Text)  # FACT|PREFERENCE|COMMITMENT|EPISODE
+    content: Mapped[str] = mapped_column(Text)
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(EMBEDDING_DIM))
+    confidence: Mapped[float] = mapped_column(REAL, server_default="0.7")
+    source_run_id: Mapped[str | None] = mapped_column(Text)
+    due_at: Mapped[datetime | None] = mapped_column(TZ)
+    status: Mapped[str] = mapped_column(Text, server_default="ACTIVE")
+    last_used_at: Mapped[datetime | None] = mapped_column(TZ)
+    created_at: Mapped[datetime] = mapped_column(TZ, server_default="now()")
+    updated_at: Mapped[datetime] = mapped_column(TZ, server_default="now()")
+
+
+class RefundCase(Base):
+    __tablename__ = "refund_cases"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    user_id: Mapped[str] = mapped_column(Text, ForeignKey("users.id"))
+    case_type: Mapped[str] = mapped_column(Text)  # UPI_P2P_FAILED|UPI_P2M_FAILED|ECOM_REFUND
+    transaction_id: Mapped[str] = mapped_column(Text, ForeignKey("transactions.id"))
+    amount_paise: Mapped[int] = mapped_column(BigInteger)
+    reference_id: Mapped[str | None] = mapped_column(Text)
+    opened_at: Mapped[datetime] = mapped_column(TZ)
+    deadline_at: Mapped[datetime] = mapped_column(TZ)
+    state: Mapped[str] = mapped_column(Text)
+    reversed_at: Mapped[datetime | None] = mapped_column(TZ)
+    compensation_owed_paise: Mapped[int | None] = mapped_column(BigInteger, server_default="0")
+    compensation_received_paise: Mapped[int | None] = mapped_column(BigInteger, server_default="0")
+    workflow_id: Mapped[str | None] = mapped_column(Text, unique=True)
+    complaint_draft: Mapped[str | None] = mapped_column(Text)
+    updated_at: Mapped[datetime] = mapped_column(TZ, server_default="now()")
+
+
+class McpToken(Base):
+    __tablename__ = "mcp_tokens"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    user_id: Mapped[str] = mapped_column(Text, ForeignKey("users.id"))
+    token_hash: Mapped[str] = mapped_column(Text, unique=True)
+    label: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(TZ, server_default="now()")
+    expires_at: Mapped[datetime] = mapped_column(TZ)
+    revoked_at: Mapped[datetime | None] = mapped_column(TZ)
+    last_used_at: Mapped[datetime | None] = mapped_column(TZ)

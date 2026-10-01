@@ -101,7 +101,10 @@
 - [ ] ✅ Model passes promotion gate and runs on phone
 
 ## Phase 5 — Multi-agent + MCP + memory (Pillars 2 & 5)
-- [ ] W13 Four MCP servers + scoped tokens + permission tests; Coach on MCP; external MCP tokens
+- [x] W13 Four MCP servers + scoped tokens + permission tests; Coach on MCP; external MCP tokens
+  - [x] 4 MCP servers on the official SDK (2.x, streamable HTTP) + external server (HTTP/stdio);
+        per-task HS256 service tokens; permission table enforced server-side; MCP client executor;
+        personal tokens (`/v1/mcp-tokens`, 0004_mcp_tokens); tests prove runtime + server both block
 - [ ] W14 agent-tasks/results, orchestrator, Cash Detective, Memory Keeper skeleton
 - [ ] W15 pgvector memory read/write, memory UI/commands, commitments, memory eval
 

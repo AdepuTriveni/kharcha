@@ -10,6 +10,9 @@ dependencies = [
     "kharcha-agent-runtime",
     "kharcha-mcp-finance",
     "kharcha-mcp-notify",
+    "kharcha-mcp-memory",
+    "kharcha-mcp-refund",
+    "kharcha-mcp-kit",
     "faststream[confluent]>=0.7",
     "prometheus-client>=0.21",
     # Shared parsing metrics (§15.5). kharcha-ml keeps heavy training deps optional.
@@ -28,6 +31,9 @@ kharcha-insights = { workspace = true }
 kharcha-agent-runtime = { workspace = true }
 kharcha-mcp-finance = { workspace = true }
 kharcha-mcp-notify = { workspace = true }
+kharcha-mcp-memory = { workspace = true }
+kharcha-mcp-refund = { workspace = true }
+kharcha-mcp-kit = { workspace = true }
 kharcha-ml = { path = "../../../ml", editable = true }
 
 [build-system]

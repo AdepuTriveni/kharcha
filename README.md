@@ -37,6 +37,27 @@ uv run kharcha-eval forecast                        # synthetic backtest (±3-da
 cd ../ml && uv sync && uv run pytest
 ```
 
+### Use your Kharcha data from your own AI assistant (MCP)
+
+Create a personal, read-only token (90-day expiry, revocable) and point a desktop MCP client at
+the external server. Example `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "kharcha": {
+      "command": "uv",
+      "args": ["--directory", "C:/path/to/kharcha/backend", "run", "kharcha-mcp-external",
+               "--stdio", "--token", "kmcp_..."]
+    }
+  }
+}
+```
+
+Get the token with `POST /v1/mcp-tokens` (or the app later); revoke with
+`DELETE /v1/mcp-tokens/{id}`. Exposed tools: spending summary, transactions (max 100, no account
+numbers), cash balance, broke-date forecast, refund cases. No SQL.
+
 On Windows with Docker Desktop, set these before `uv run pytest -m integration` (PowerShell):
 
 ```powershell

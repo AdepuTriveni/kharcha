@@ -15,6 +15,7 @@ from kharcha_common.events import (
     AgentTaskEvent,
     CashEvent,
     CleanTransactionEvent,
+    ModelShadowEvent,
     ParsedTransactionEvent,
     RawEvent,
 )
@@ -25,6 +26,7 @@ EXPORTED: dict[str, type[BaseModel]] = {
     "clean-transaction-event": CleanTransactionEvent,
     "cash-event": CashEvent,
     "agent-task-event": AgentTaskEvent,
+    "model-shadow-event": ModelShadowEvent,
 }
 
 DEFAULT_OUT = Path(__file__).resolve().parents[4] / "schemas"

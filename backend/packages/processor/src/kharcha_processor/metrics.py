@@ -15,3 +15,15 @@ NOT_TRANSACTION = Counter(
 TRANSACTIONS_WRITTEN = Counter(
     "kharcha_transactions_written_total", "Transactions inserted", ["kind"]
 )
+RULE_OBSERVATIONS = Counter(
+    "kharcha_rule_observations_total", "Rule outputs compared with another tier", ["outcome"]
+)
+RULE_STATUS_CHANGES = Counter(
+    "kharcha_rule_status_changes_total", "Rules promoted or disabled", ["status"]
+)
+RULES_SYNTHESIZED = Counter(
+    "kharcha_rules_synthesized_total", "Rule synthesis attempts by result", ["result"]
+)
+SHADOW_COMPARISONS = Counter(
+    "kharcha_parser_shadow_total", "Shadow comparisons between tiers", ["agreement"]
+)

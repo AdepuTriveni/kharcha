@@ -15,9 +15,13 @@ from typing import Any
 
 from kharcha_common.events import ParsedTransactionPayload, RawEvent, RawEventPayload
 from kharcha_common.money import paise_to_rupees
+from kharcha_common.templates import sender_key
 from kharcha_ml.dataset.labels import Extraction, LabeledExample
 from kharcha_ml.eval.metrics import ParsingReport, evaluate, to_markdown
+from kharcha_processor.extraction import ExtractionResult
 from kharcha_processor.parser import Dropped, Failed, NotTransaction, parse_raw_event
+from kharcha_processor.rule_store import load_seed_rules
+from kharcha_processor.rules import CompiledRule, compile_rule
 from kharcha_processor.teacher import Extractor
 from kharcha_processor.validation import ValidationFailure
 
@@ -40,6 +44,10 @@ def to_raw_event(example: LabeledExample) -> RawEvent:
             redacted=True,
         ),
     )
+
+
+def _key(example: LabeledExample) -> str | None:
+    return sender_key(example.sender, example.source_app)
 
 
 def to_extraction(payload: ParsedTransactionPayload) -> Extraction:
@@ -115,6 +123,23 @@ class ParsingEval:
         return "\n".join(lines) + "\n"
 
 
+class NoModel:
+    """Extractor for a rules-only run: anything no rule matched counts as not parsed."""
+
+    model_version = "none"
+
+    async def extract(
+        self, *, sender: str | None, source_app: str | None, text: str
+    ) -> ExtractionResult:
+        return ExtractionResult(is_transaction=False)
+
+
+def seed_rules_compiled() -> list[CompiledRule]:
+    return [
+        compile_rule(s.id, s.sender_key, s.regex, s.field_map, "ACTIVE") for s in load_seed_rules()
+    ]
+
+
 class _CountingExtractor:
     """Wraps an extractor to count model calls and time them."""
 
@@ -132,12 +157,19 @@ class _CountingExtractor:
             self._result.latencies_ms.append((time.perf_counter() - start) * 1000)
 
 
-async def run_parsing(examples: Sequence[LabeledExample], extractor: Extractor) -> ParsingEval:
-    result = ParsingEval(subject=extractor.model_version, report=ParsingReport())
+async def run_parsing(
+    examples: Sequence[LabeledExample],
+    extractor: Extractor,
+    rules: Sequence[CompiledRule] = (),
+    subject: str | None = None,
+) -> ParsingEval:
+    result = ParsingEval(subject=subject or extractor.model_version, report=ParsingReport())
     counting = _CountingExtractor(extractor, result)
     pairs: list[tuple[str | None, Extraction, Extraction | None]] = []
     for example in examples:
-        outcome = await parse_raw_event(to_raw_event(example), counting)
+        event = to_raw_event(example)
+        rules_for_sender = [r for r in rules if r.sender_key == _key(example)]
+        outcome = await parse_raw_event(event, counting, rules_for_sender)
         result.outcomes[_outcome_name(outcome)] += 1
         predicted = (
             to_extraction(outcome) if isinstance(outcome, ParsedTransactionPayload) else None

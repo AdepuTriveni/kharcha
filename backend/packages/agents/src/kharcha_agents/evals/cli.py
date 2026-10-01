@@ -8,19 +8,28 @@ import asyncio
 import json
 import subprocess
 from datetime import UTC, datetime
+from enum import StrEnum
 from pathlib import Path
 from typing import Annotated, Any
 
 import typer
 from sqlalchemy.exc import SQLAlchemyError
 
-from kharcha_agents.evals.parsing import run_parsing
+from kharcha_agents.evals.parsing import NoModel, run_parsing, seed_rules_compiled
 from kharcha_common.db import make_engine, make_sessionmaker
 from kharcha_common.db.models import EvalRun
 from kharcha_common.ids import uuid7
 from kharcha_common.settings import Settings, get_settings
 from kharcha_ml.dataset.labels import read_jsonl
+from kharcha_processor.rules import CompiledRule
 from kharcha_processor.teacher import Extractor, TeacherLLM
+
+
+class ParserMode(StrEnum):
+    TIERED = "tiered"  # seed rules, then the teacher (what production does)
+    RULES = "rules"  # seed rules only
+    TEACHER = "teacher"  # teacher only
+
 
 app = typer.Typer(help="Kharcha evaluation suites", no_args_is_help=True)
 
@@ -62,10 +71,16 @@ async def record_run(settings: Settings, suite: str, subject: str, metrics: dict
 
 
 async def _parsing(
-    labels: Path, out_dir: Path, settings: Settings, extractor: Extractor, record: bool
+    labels: Path,
+    out_dir: Path,
+    settings: Settings,
+    extractor: Extractor,
+    rules: list[CompiledRule],
+    subject: str,
+    record: bool,
 ) -> Path:
     examples = list(read_jsonl(labels))
-    result = await run_parsing(examples, extractor)
+    result = await run_parsing(examples, extractor, rules, subject)
     metrics = {"dataset": labels.name, **result.metrics()}
     stem = f"parsing-{datetime.now(UTC):%Y%m%dT%H%M%SZ}"
     md = write_reports(out_dir, stem, metrics, result.markdown(f"Parsing eval: {labels.name}"))
@@ -83,14 +98,22 @@ async def _parsing(
 def parsing(
     labels: Annotated[Path, typer.Argument(exists=True, dir_okay=False, help="labels .jsonl")],
     out_dir: Annotated[Path, typer.Option(help="report directory")] = Path("reports/parsing"),
+    parser: Annotated[ParserMode, typer.Option(help="which tiers to run")] = ParserMode.TIERED,
     model: Annotated[str | None, typer.Option(help="LiteLLM model (default: settings)")] = None,
     record: Annotated[bool, typer.Option(help="write a row to eval_runs")] = True,
 ) -> None:
-    """Server parser (pre-filter -> teacher LLM -> validation) against labeled examples."""
+    """Server parser (pre-filter -> rules -> teacher -> validation) against labeled examples."""
     settings = get_settings()
     if model:
         settings = settings.model_copy(update={"llm_model": model})
-    md = asyncio.run(_parsing(labels, out_dir, settings, TeacherLLM(settings), record))
+    rules = [] if parser is ParserMode.TEACHER else seed_rules_compiled()
+    extractor: Extractor = NoModel() if parser is ParserMode.RULES else TeacherLLM(settings)
+    subject = {
+        ParserMode.RULES: "rules:seed",
+        ParserMode.TEACHER: extractor.model_version,
+        ParserMode.TIERED: f"rules:seed+{extractor.model_version}",
+    }[parser]
+    md = asyncio.run(_parsing(labels, out_dir, settings, extractor, rules, subject, record))
     typer.echo(f"report: {md}")
 
 

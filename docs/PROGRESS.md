@@ -40,6 +40,11 @@
   - [x] `kharcha-admin export-labeling` (consent-only, re-scrubbed) + `kharcha-eval parsing` (JSON/MD + eval_runs)
   - [ ] first real parsing report: needs `ollama pull qwen2.5:1.5b` and some labeled messages
 - [ ] W5 Rules + synthesis + shadow + DLTs + metrics
+  - [x] rule engine + compile guard, 14 seed rules (auto-seeded at processor start), tiered parser
+  - [x] synthesis (same-user samples, validated, CANDIDATE), shadow 10% -> `model-shadow`,
+        promote after 5 / auto-disable > 2 mismatches, metrics, ADR-015, unit + integration tests
+  - [x] `kharcha-eval parsing --parser rules|teacher|tiered`
+  - [ ] "≥ 60% of my events parsed by rules": check `kharcha_parse_method_total` after a week of real use
 - [ ] W6 Cash wallet, quick-add, widget, redaction corpus, corrections
 
 ## Phase 3 — Forecast, harness, friends

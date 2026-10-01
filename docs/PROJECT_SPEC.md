@@ -337,6 +337,11 @@ or `{ alertId, cashAnswer: {category, amountPaise} | DONT_REMEMBER }`.
 
 **NudgeOutcomePayload**: `{ decisionId, arm, contextBucket, propensity, reward, rewardComponents }`.
 
+**ModelShadowPayload** (topic `model-shadow`, §10.5): `{ rawEventId, tierResults: [TierResult], agreement }`
+where `TierResult = { parseMethod, version (rule id or model version), outcome: TRANSACTION |
+NOT_TRANSACTION | FAILED, amountPaise?, direction?, status?, merchantRaw?, referenceId? }`.
+No message text. Added in W5 as a new event type (existing schemas unchanged, `schemaVersion` stays 1).
+
 ---
 
 ## 8. Data model (PostgreSQL)

@@ -6,7 +6,7 @@ Values come from environment variables prefixed ``KHARCHA_`` or a ``.env`` file.
 from functools import lru_cache
 from typing import Literal, Self
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Env = Literal["local", "test", "prod"]
@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     llm_model: str = "ollama/qwen2.5:1.5b"
     ollama_api_base: str = "http://localhost:11434"
     llm_timeout_s: float = 60.0
+
+    # Parser (§10.4-10.5): share of rule-parsed events also sent to the teacher, and synthesis.
+    parser_shadow_rate: float = Field(default=0.1, ge=0.0, le=1.0)
+    rule_synthesis_enabled: bool = True
 
     # Phase 1 auth: static per-user API keys, stored as {sha256(key) hex: user_id}.
     # Generate with `uv run kharcha-admin create-user`. Replaced by Firebase in W9.

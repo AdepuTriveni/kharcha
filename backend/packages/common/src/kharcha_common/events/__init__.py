@@ -19,12 +19,14 @@ from kharcha_common.events.payloads import (
     ParsedTransactionPayload,
     RawEventPayload,
 )
+from kharcha_common.events.shadow import ModelShadowPayload, TierOutcome, TierResult
 
 RawEvent = EventEnvelope[RawEventPayload]
 ParsedTransactionEvent = EventEnvelope[ParsedTransactionPayload]
 CleanTransactionEvent = EventEnvelope[CleanTransactionPayload]
 CashEvent = EventEnvelope[CashEventPayload]
 AgentTaskEvent = EventEnvelope[AgentTaskPayload]
+ModelShadowEvent = EventEnvelope[ModelShadowPayload]
 
 __all__ = [
     "SCHEMA_VERSION",
@@ -43,6 +45,8 @@ __all__ = [
     "DeviceParseResult",
     "Direction",
     "EventEnvelope",
+    "ModelShadowEvent",
+    "ModelShadowPayload",
     "ParseMethod",
     "ParsedTransactionEvent",
     "ParsedTransactionPayload",
@@ -50,6 +54,8 @@ __all__ = [
     "RawEvent",
     "RawEventPayload",
     "RawEventType",
+    "TierOutcome",
+    "TierResult",
     "TxnKind",
     "TxnStatus",
 ]

@@ -1,0 +1,97 @@
+# Hand-written tier 1 parse rules (PROJECT_SPEC §10.1, §10.4). Seed rules start ACTIVE.
+# Written from public examples of message formats, never from real user data.
+#
+# id:
+#   sender: sender key (DLT header without the XX- prefix) or the app package name
+#   regex: Python regex, case-insensitive. Groups: amount (required), merchant, vpa, ref,
+#          acct, bal, days. No literal digits/VPAs (shared by all users).
+#   direction / channel / status: static fields (status defaults to SUCCESS)
+#
+# Amount group used everywhere: (?P<amount>[\d,]+(?:\.\d{1,2})?)
+
+r_hdfc_upi_debit_v1:
+  sender: HDFCBK
+  regex: 'Rs\.? ?(?P<amount>[\d,]+(?:\.\d{1,2})?) debited from A/c [X*]+(?P<acct>\d{4}) on [\d/-]+ to VPA (?P<vpa>[\w.\-]+@\w+)\.? UPI Ref:? (?P<ref>\d{6,})'
+  direction: DEBIT
+  channel: UPI
+
+r_hdfc_atm_v1:
+  sender: HDFCBK
+  regex: 'Rs\.? ?(?P<amount>[\d,]+(?:\.\d{1,2})?) withdrawn at ATM \w+ from A/c [X*]+(?P<acct>\d{4}) on [\d/-]+\.? Avl bal Rs\.? ?(?P<bal>[\d,]+(?:\.\d{1,2})?)'
+  direction: DEBIT
+  channel: ATM
+
+r_hdfc_upi_refund_v1:
+  sender: HDFCBK
+  regex: 'Refund of Rs\.? ?(?P<amount>[\d,]+(?:\.\d{1,2})?) for UPI txn (?P<ref>\d{6,}) has been credited to A/c [X*]+(?P<acct>\d{4})'
+  direction: CREDIT
+  channel: UPI
+  status: REVERSED
+
+r_sbi_neft_credit_v1:
+  sender: SBIINB
+  regex: 'A/c [X*]+(?P<acct>\d{4}) is credited with Rs\.? ?(?P<amount>[\d,]+(?:\.\d{1,2})?) on \w+ by (?:NEFT|IMPS|RTGS) from (?P<merchant>[^.]+?)\. Avl Bal Rs\.? ?(?P<bal>[\d,]+(?:\.\d{1,2})?)'
+  direction: CREDIT
+  channel: NETBANKING
+
+r_sbi_upi_debit_v1:
+  sender: SBIUPI
+  regex: 'A/C [X*]+(?P<acct>\d{4}) debited by (?P<amount>[\d,]+(?:\.\d{1,2})?) on date \w+ trf to (?P<merchant>.+?) Refno (?P<ref>\d{6,})'
+  direction: DEBIT
+  channel: UPI
+
+r_icici_card_spend_v1:
+  sender: ICICIT
+  regex: 'INR (?P<amount>[\d,]+(?:\.\d{1,2})?) spent on ICICI Bank Card [X*]+(?P<acct>\d{4}) on [\w-]+ at (?P<merchant>[^.]+?)\. Avl Limit'
+  direction: DEBIT
+  channel: CARD
+
+r_icici_upi_debit_v1:
+  sender: ICICIT
+  regex: 'ICICI Bank Acct [X*]+(?P<acct>\d{3,4}) debited for Rs\.? ?(?P<amount>[\d,]+(?:\.\d{1,2})?) on [\w-]+; (?P<merchant>.+?) credited\. UPI:(?P<ref>\d{6,})'
+  direction: DEBIT
+  channel: UPI
+
+r_kotak_upi_failed_v1:
+  sender: KOTAKB
+  regex: 'transaction of Rs\.? ?(?P<amount>[\d,]+(?:\.\d{1,2})?) to (?P<vpa>[\w.\-]+@\w+) has FAILED\. Amount if debited will be refunded within (?P<days>\d+) working days\. UPI Ref:? (?P<ref>\d{6,})'
+  direction: DEBIT
+  channel: UPI
+  status: FAILED
+
+r_axis_imps_credit_v1:
+  sender: AXISBK
+  regex: 'Amt Rs\.? ?(?P<amount>[\d,]+(?:\.\d{1,2})?) credited to A/c no\. [X*]+(?P<acct>\d{4}) via IMPS\. Ref:? (?P<ref>\d{6,})'
+  direction: CREDIT
+  channel: NETBANKING
+
+r_yes_upi_pending_v1:
+  sender: YESBNK
+  regex: 'Rs\.? ?(?P<amount>[\d,]+(?:\.\d{1,2})?) is pending for UPI txn to (?P<vpa>[\w.\-]+@\w+)\. Status will update shortly\. Ref:? (?P<ref>\d{6,})'
+  direction: DEBIT
+  channel: UPI
+  status: PENDING
+
+r_idfc_emi_debit_v1:
+  sender: IDFCFB
+  regex: 'Rs\.? ?(?P<amount>[\d,]+(?:\.\d{1,2})?) debited from your a/c [X*]+(?P<acct>\d{4}) for EMI towards (?P<merchant>[^.]+?)\. Ref:? (?P<ref>\d{6,})'
+  direction: DEBIT
+  channel: NETBANKING
+
+r_phonepe_paid_v1:
+  sender: com.phonepe.app
+  regex: '^Paid (?:₹|Rs\.? ?)(?P<amount>[\d,]+(?:\.\d{1,2})?) to (?P<merchant>.+?)\. UPI Ref No\.? (?P<ref>\d{6,})'
+  direction: DEBIT
+  channel: UPI
+
+r_gpay_received_v1:
+  sender: com.google.android.apps.nbu.paisa.user
+  regex: '^You received (?:₹|Rs\.? ?)(?P<amount>[\d,]+(?:\.\d{1,2})?) from (?P<vpa>[\w.\-]+@\w+)$'
+  direction: CREDIT
+  channel: UPI
+
+r_paytm_paid_v1:
+  sender: net.one97.paytm
+  regex: '^Paid (?:₹|Rs\.? ?)(?P<amount>[\d,]+(?:\.\d{1,2})?) to (?P<merchant>.+?) via Paytm UPI\. Ref:? (?P<ref>\d{6,})'
+  direction: DEBIT
+  channel: UPI

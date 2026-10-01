@@ -1,0 +1,220 @@
+{
+  "$defs": {
+    "Direction": {
+      "enum": [
+        "DEBIT",
+        "CREDIT"
+      ],
+      "title": "Direction",
+      "type": "string"
+    },
+    "ModelShadowPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "agreement": {
+          "title": "Agreement",
+          "type": "boolean"
+        },
+        "rawEventId": {
+          "title": "Raweventid",
+          "type": "string"
+        },
+        "tierResults": {
+          "items": {
+            "$ref": "#/$defs/TierResult"
+          },
+          "minItems": 2,
+          "title": "Tierresults",
+          "type": "array"
+        }
+      },
+      "required": [
+        "rawEventId",
+        "tierResults",
+        "agreement"
+      ],
+      "title": "ModelShadowPayload",
+      "type": "object"
+    },
+    "ParseMethod": {
+      "enum": [
+        "RULE",
+        "DEVICE_MODEL",
+        "SERVER_MODEL",
+        "TEACHER_LLM"
+      ],
+      "title": "ParseMethod",
+      "type": "string"
+    },
+    "TierOutcome": {
+      "enum": [
+        "TRANSACTION",
+        "NOT_TRANSACTION",
+        "FAILED"
+      ],
+      "title": "TierOutcome",
+      "type": "string"
+    },
+    "TierResult": {
+      "additionalProperties": false,
+      "properties": {
+        "amountPaise": {
+          "anyOf": [
+            {
+              "description": "Amount in paise (1 rupee = 100 paise)",
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Amountpaise"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Direction"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "merchantRaw": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Merchantraw"
+        },
+        "outcome": {
+          "$ref": "#/$defs/TierOutcome"
+        },
+        "parseMethod": {
+          "$ref": "#/$defs/ParseMethod"
+        },
+        "referenceId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Referenceid"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TxnStatus"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "rule id or model version",
+          "title": "Version"
+        }
+      },
+      "required": [
+        "parseMethod",
+        "outcome"
+      ],
+      "title": "TierResult",
+      "type": "object"
+    },
+    "TxnStatus": {
+      "enum": [
+        "SUCCESS",
+        "FAILED",
+        "PENDING",
+        "REVERSED",
+        "REFUND_INITIATED"
+      ],
+      "title": "TxnStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "causationId": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Causationid"
+    },
+    "eventId": {
+      "title": "Eventid",
+      "type": "string"
+    },
+    "occurredAt": {
+      "format": "date-time",
+      "title": "Occurredat",
+      "type": "string"
+    },
+    "payload": {
+      "$ref": "#/$defs/ModelShadowPayload"
+    },
+    "producedAt": {
+      "format": "date-time",
+      "title": "Producedat",
+      "type": "string"
+    },
+    "producer": {
+      "minLength": 1,
+      "title": "Producer",
+      "type": "string"
+    },
+    "schemaVersion": {
+      "default": 1,
+      "title": "Schemaversion",
+      "type": "integer"
+    },
+    "type": {
+      "minLength": 1,
+      "title": "Type",
+      "type": "string"
+    },
+    "userId": {
+      "minLength": 1,
+      "title": "Userid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "userId",
+    "type",
+    "occurredAt",
+    "producer",
+    "payload"
+  ],
+  "title": "EventEnvelope[ModelShadowPayload]",
+  "type": "object"
+}

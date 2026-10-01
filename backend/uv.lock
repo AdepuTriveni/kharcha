@@ -931,12 +931,14 @@ source = { editable = "packages/processor" }
 dependencies = [
     { name = "kharcha-common" },
     { name = "litellm" },
+    { name = "pyyaml" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "kharcha-common", editable = "packages/common" },
     { name = "litellm", specifier = ">=1.55" },
+    { name = "pyyaml", specifier = ">=6.0" },
 ]
 
 [[package]]

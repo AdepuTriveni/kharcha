@@ -149,3 +149,17 @@ class EvalRun(Base):
     metrics: Mapped[dict[str, Any]] = mapped_column(JSONB)
     git_sha: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(TZ, server_default="now()")
+
+
+class ParseRule(Base):
+    __tablename__ = "parse_rules"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    sender_pattern: Mapped[str | None] = mapped_column(Text)  # sender key, e.g. HDFCBK
+    regex: Mapped[str] = mapped_column(Text)
+    field_map: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    status: Mapped[str] = mapped_column(Text)  # CANDIDATE|ACTIVE|DISABLED
+    origin: Mapped[str] = mapped_column(Text)  # SEED|SYNTHESIZED
+    match_count: Mapped[int] = mapped_column(Integer, server_default="0")
+    mismatch_count: Mapped[int] = mapped_column(Integer, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(TZ, server_default="now()")

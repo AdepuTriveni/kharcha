@@ -21,6 +21,8 @@ from kharcha_processor.handlers import (
     handle_parsed_transaction,
     handle_raw_event,
 )
+from kharcha_processor.rule_store import seed_rules
+from kharcha_processor.synthesis import RuleWriter, TeacherRuleWriter
 from kharcha_processor.teacher import Extractor, TeacherLLM
 
 
@@ -29,13 +31,19 @@ def _key(message: KafkaMessage) -> bytes | None:
     return key if isinstance(key, bytes) else None
 
 
-def build_broker(settings: Settings, teacher: Extractor | None = None) -> KafkaBroker:
+def build_broker(
+    settings: Settings, teacher: Extractor | None = None, rule_writer: RuleWriter | None = None
+) -> KafkaBroker:
     broker = make_broker(settings, client_id="kharcha-processor")
     publisher = BrokerPublisher(broker)
+    if rule_writer is None and settings.rule_synthesis_enabled:
+        rule_writer = TeacherRuleWriter(settings)
     deps = ProcessorDeps(
         sessions=make_sessionmaker(make_engine(settings)),
         publisher=publisher,
         teacher=teacher or TeacherLLM(settings),
+        rule_writer=rule_writer,
+        shadow_rate=settings.parser_shadow_rate,
     )
 
     @broker.subscriber(
@@ -89,8 +97,23 @@ def build_broker(settings: Settings, teacher: Extractor | None = None) -> KafkaB
     return broker
 
 
+async def _seed_rules(settings: Settings) -> None:
+    """Insert hand-written rules once; existing rows keep their counters and status."""
+    engine = make_engine(settings)
+    try:
+        async with make_sessionmaker(engine).begin() as session:
+            await seed_rules(session)
+    finally:
+        await engine.dispose()
+
+
+async def _main(settings: Settings) -> None:
+    await _seed_rules(settings)
+    await FastStream(build_broker(settings)).run()
+
+
 def run() -> None:
     settings = get_settings()
     configure_logging(settings.log_level)
     start_http_server(settings.metrics_port)
-    asyncio.run(FastStream(build_broker(settings)).run())
+    asyncio.run(_main(settings))

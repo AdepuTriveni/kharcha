@@ -6,8 +6,16 @@ import pytest
 from typer.testing import CliRunner
 
 from kharcha_agents.evals import cli
-from kharcha_agents.evals.parsing import run_parsing, to_extraction, to_raw_event
+from kharcha_agents.evals.parsing import (
+    NoModel,
+    run_parsing,
+    seed_rules_compiled,
+    to_extraction,
+    to_raw_event,
+)
+from kharcha_common.templates import template_signature as common_signature
 from kharcha_ml.dataset.labels import LabeledExample, read_jsonl
+from kharcha_ml.dataset.labels import template_signature as ml_signature
 from kharcha_processor.extraction import ExtractionResult
 from kharcha_processor.parser import parse_raw_event
 from kharcha_processor.teacher import BadModelOutputError
@@ -85,10 +93,25 @@ def test_cli_writes_json_and_markdown(tmp_path: Path, monkeypatch: pytest.Monkey
     (report,) = out.glob("parsing-*.json")
     data = json.loads(report.read_text(encoding="utf-8"))
     assert data["dataset"] == "parsing_sample.jsonl"
-    assert data["subject"] == "label-teacher#parser/v1"
+    assert data["subject"] == "rules:seed+label-teacher#parser/v1"
     assert report.with_suffix(".md").exists()
     assert "All-fields exact match" in res.output
 
 
 def test_later_suites_exit_nonzero() -> None:
     assert CliRunner().invoke(cli.app, ["ask"]).exit_code == 2
+
+
+async def test_rules_only_mode_counts_rule_hits() -> None:
+    examples = _examples()
+    result = await run_parsing(examples, NoModel(), seed_rules_compiled(), "rules:seed")
+    # The seed rules were written from these synthetic formats, so this checks wiring only.
+    assert result.metrics()["allFieldsExactMatch"] == 1.0
+    assert result.subject == "rules:seed"
+
+
+def test_template_signature_matches_ml_copy() -> None:
+    for example in _examples():
+        assert common_signature(example.text, example.sender) == ml_signature(
+            example.text, example.sender
+        )

@@ -329,8 +329,10 @@ CASH_SPEND | CASH_IN | UNACCOUNTED_CASH. Consumers upsert by `transactionId` + `
 ```
 `BUDGET`, `FREQUENCY` and `BROKE_DATE_MOVED` carry the §22.1 deterministic triggers. `dedupeKey`
 (optional) becomes `alerts_sent.dedupe_key`, so a re-delivered task never produces a second alert.
-**AgentResultPayload**: `{ taskId, agent, runId, status, proposals: [Proposal], memoryWrites: [..], drafts: [..] }`
-where `Proposal = { type, text, category?, buttons[], reason, groundingNumbers[] }`.
+**AgentResultPayload**: `{ taskId, agent, runId, status, trigger, proposals: [Proposal], memoryWrites: [..], drafts: [..], dedupeKey? }`
+where `Proposal = { type: ROAST|NUDGE|HYPE|QUESTION|INFO, text, category?, buttons[], reason, groundingNumbers[], templated }`.
+`templated = true` marks the orchestrator's deterministic plain nudge, always appended last so
+the policy gate can downgrade a roast (W8; `trigger` and `dedupeKey` added then).
 
 **UserFeedbackPayload**: `{ alertId, reaction: FAIR|NOT_FAIR|NECESSARY|FUNNY|MUTE_CATEGORY, category? }`
 or `{ alertId, cashAnswer: {category, amountPaise} | DONT_REMEMBER }`.

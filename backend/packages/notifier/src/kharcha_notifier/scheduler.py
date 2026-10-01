@@ -1,4 +1,5 @@
-"""Daily summary at ``daily_summary_time`` IST for every linked user (PROJECT_SPEC §34 W3).
+"""Scheduled jobs: daily summary at ``daily_summary_time`` IST (W3) and the Sunday weekly
+review task (§17.2).
 
 Exactly once per user per day: ``alerts_sent`` row with dedupe key ``daily:<date>`` is inserted
 before sending, so restarts and several notifier replicas cannot double-send.
@@ -7,13 +8,22 @@ before sending, so restarts and several notifier replicas cannot double-send.
 import asyncio
 import logging
 import uuid
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
 
 from kharcha_common.db.models import AlertSent, User
+from kharcha_common.events import (
+    AgentName,
+    AgentTaskEvent,
+    AgentTaskPayload,
+    AgentTrigger,
+    Priority,
+)
+from kharcha_common.kafka import derived_event_id
 from kharcha_common.time import to_ist, utcnow
+from kharcha_common.topics import Topic
 from kharcha_notifier import queries
 from kharcha_notifier.bot import BotDeps
 from kharcha_notifier.policy import AlertKind, Counts, Decision, RoastLevel, decide
@@ -93,4 +103,62 @@ async def run_daily_summaries(deps: BotDeps, at: time, interval_s: float = 60.0)
             await send_due_summaries(deps, at)
         except Exception:
             log.exception("daily summary loop error")
+        await asyncio.sleep(interval_s)
+
+
+WEEKLY_REVIEW_DAY = 6  # Sunday
+WEEKLY_REVIEW_AT = time(11, 0)  # IST (§17.2)
+
+
+async def publish_weekly_reviews(deps: BotDeps, now: datetime | None = None) -> int:
+    """Sunday 11:00 IST: one WEEKLY_REVIEW task per linked user per ISO week.
+
+    The task id comes from the dedupe key and a Redis marker stops the one-minute loop from
+    republishing; the orchestrator is idempotent either way.
+    """
+    now = now or utcnow()
+    local = to_ist(now)
+    if local.weekday() != WEEKLY_REVIEW_DAY or local.time() < WEEKLY_REVIEW_AT:
+        return 0
+    year, week, _ = local.isocalendar()
+    dedupe = f"weekly:{year}-W{week:02d}"
+    async with deps.sessions() as session:
+        users = (
+            await session.scalars(select(User.id).where(User.telegram_chat_id.is_not(None)))
+        ).all()
+    published = 0
+    for user_id in users:
+        if not await deps.redis.set(f"sched:{dedupe}:{user_id}", "1", nx=True, ex=8 * 86400):
+            continue
+        task_id = "at_" + derived_event_id("task", user_id, dedupe).replace("-", "")
+        await deps.publisher.publish_event(
+            Topic.AGENT_TASKS,
+            AgentTaskEvent(
+                event_id=derived_event_id("agent-task", user_id, dedupe),
+                user_id=user_id,
+                type="AGENT_TASK",
+                occurred_at=now,
+                producer="notifier.scheduler",
+                payload=AgentTaskPayload(
+                    task_id=task_id,
+                    agent=AgentName.COACH,
+                    trigger=AgentTrigger.WEEKLY_REVIEW,
+                    goal=f"Weekly review for week {year}-W{week:02d}",
+                    context_refs={"week": f"{year}-W{week:02d}"},
+                    deadline=now + timedelta(hours=6),
+                    priority=Priority.LOW,
+                    dedupe_key=dedupe,
+                ),
+            ),
+        )
+        published += 1
+    return published
+
+
+async def run_weekly_reviews(deps: BotDeps, interval_s: float = 60.0) -> None:
+    while True:
+        try:
+            await publish_weekly_reviews(deps)
+        except Exception:
+            log.exception("weekly review loop error")
         await asyncio.sleep(interval_s)

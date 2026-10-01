@@ -92,6 +92,7 @@ async def env(migrated_db: PgUrls) -> AsyncIterator[Env]:
     async with engine.begin() as conn:
         for table in (
             "user_merchant_overrides",
+            "agent_runs",
             "alerts_sent",
             "cash_ledger",
             "transaction_sources",

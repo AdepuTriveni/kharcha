@@ -1,0 +1,9 @@
+# Per-agent model routing and limits (PROJECT_SPEC §16.2, §16.6).
+# `models` is a fallback chain; "default" means KHARCHA_LLM_MODEL from settings.
+coach:
+  prompt: coach/v1
+  models: [default]
+  tools: [get_weekly_summary, list_transactions, get_cash_balance, get_forecast, what_if,
+          get_budgets, get_recent_alerts, get_feedback_stats, propose_message]
+  limits: {max_iterations: 8, max_input_tokens: 12000, max_wall_s: 60, max_proposals: 3,
+           max_calls_per_tool: 4}

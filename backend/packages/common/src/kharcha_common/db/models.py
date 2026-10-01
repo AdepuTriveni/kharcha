@@ -188,3 +188,29 @@ class ForecastRow(Base):
     broke_p80: Mapped[date | None] = mapped_column(Date)
     horizon_days: Mapped[int] = mapped_column(Integer)
     inputs: Mapped[dict[str, Any]] = mapped_column(JSONB)
+
+
+class AlertFeedback(Base):
+    __tablename__ = "alert_feedback"
+
+    alert_id: Mapped[str] = mapped_column(Text, ForeignKey("alerts_sent.id"), primary_key=True)
+    reaction: Mapped[str] = mapped_column(Text, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(TZ, server_default="now()")
+
+
+class AgentRunRow(Base):
+    __tablename__ = "agent_runs"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    user_id: Mapped[str] = mapped_column(Text, ForeignKey("users.id"))
+    task_id: Mapped[str | None] = mapped_column(Text)
+    agent: Mapped[str] = mapped_column(Text)
+    prompt_version: Mapped[str] = mapped_column(Text)
+    model: Mapped[str] = mapped_column(Text)
+    started_at: Mapped[datetime] = mapped_column(TZ)
+    finished_at: Mapped[datetime | None] = mapped_column(TZ)
+    status: Mapped[str] = mapped_column(Text)  # OK|BUDGET_EXCEEDED|ERROR|TIMEOUT|DENIED_TOOL
+    transcript: Mapped[list[dict[str, Any]]] = mapped_column(JSONB)
+    input_tokens: Mapped[int | None] = mapped_column(Integer)
+    output_tokens: Mapped[int | None] = mapped_column(Integer)
+    cost_micros: Mapped[int | None] = mapped_column(BigInteger, server_default="0")

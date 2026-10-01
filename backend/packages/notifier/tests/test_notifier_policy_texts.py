@@ -4,8 +4,7 @@ import pytest
 
 from kharcha_common.cash import CashBalance
 from kharcha_common.categories import Category
-from kharcha_common.events import AgentTrigger, CashEntryType
-from kharcha_notifier.coach_v0 import Facts, compose, plain_text
+from kharcha_common.events import CashEntryType, Proposal, ProposalType
 from kharcha_notifier.policy import (
     AlertKind,
     Counts,
@@ -15,6 +14,7 @@ from kharcha_notifier.policy import (
     in_quiet_hours,
 )
 from kharcha_notifier.queries import DaySummary
+from kharcha_notifier.results import choose
 from kharcha_notifier.texts import cash_logged_text, summary_text
 
 NOON_IST = datetime(2026, 10, 3, 6, 30, tzinfo=UTC)  # 12:00 IST
@@ -86,30 +86,18 @@ def test_cash_logged_text() -> None:
     assert text == "✅ Logged cash spend ₹150.00 · vada pav (dining out)"
 
 
-FACTS = Facts(AgentTrigger.FREQUENCY, Category.FOOD_DELIVERY, "zomato", 142000, count=4)
+def _proposal(ptype: ProposalType, text: str = "x") -> Proposal:
+    return Proposal(type=ptype, text=text)
 
 
-class FakeModel:
-    def __init__(self, text: str) -> None:
-        self.text = text
-
-    async def write(self, prompt: object, level: object, facts: object) -> str:
-        return self.text
-
-
-async def test_compose_uses_grounded_model_text() -> None:
-    from kharcha_common.prompts import load_prompt
-
-    good = "Bro, 4 zomato orders this week, ₹1,420 gone. Cook once?"
-    prompt = load_prompt("coach", "v0")
-    assert await compose(FakeModel(good), prompt, RoastLevel.MEDIUM, FACTS) == good
-
-
-async def test_compose_rejects_ungrounded_text() -> None:
-    from kharcha_common.prompts import load_prompt
-
-    bad = "₹2,000 on zomato this week!"
-    text = await compose(FakeModel(bad), load_prompt("coach", "v0"), RoastLevel.MEDIUM, FACTS)
-    assert text == plain_text(FACTS)
-    assert "₹1,420.00" in text
-    assert "4 payments" in text
+def test_gate_choice_prefers_allowed_roast_then_plain_fallback() -> None:
+    roast = _proposal(ProposalType.ROAST, "roast")
+    plain = Proposal(type=ProposalType.NUDGE, text="plain", templated=True)
+    proposals = [roast, plain]
+    send = {ProposalType.ROAST: Decision.SEND, ProposalType.NUDGE: Decision.SEND}
+    assert choose(proposals, send) == (roast, AlertKind.ROAST)
+    downgraded = {ProposalType.ROAST: Decision.SEND_PLAIN, ProposalType.NUDGE: Decision.SEND}
+    assert choose(proposals, downgraded) == (plain, AlertKind.NUDGE)
+    quiet = {ProposalType.ROAST: Decision.SUPPRESS, ProposalType.NUDGE: Decision.SUPPRESS}
+    assert choose(proposals, quiet) is None
+    assert choose([roast], downgraded) is None

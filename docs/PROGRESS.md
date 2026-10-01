@@ -60,7 +60,12 @@
         BROKE_DATE_MOVED trigger, `kharcha-eval forecast` (synthetic: 67.8% ±3 d, MAE 4.9 d)
   - [x] Android Home tab: broke-date range card, "what if I cut…" chips + slider, one-time balance ask
   - [ ] real backtest once there are 60+ days of my own history
-- [ ] W8 Agent runtime (limits, permissions, transcripts, grounding, replay) + Coach v1 + policy gate
+- [x] W8 Agent runtime (limits, permissions, transcripts, grounding, replay) + Coach v1 + policy gate
+  - [x] `kharcha_runtime` loop + limits + DENIED_TOOL + grounding + content filter + replay + LiteLLM
+        fallback/circuit breaker; finance + notify tools (in-process, user-scoped); orchestrator
+        (`kharcha-agents`) with agent_runs transcripts + templated fallback; notifier policy gate on
+        `agent-results`; Sunday 11:00 weekly review; ADR-008; unit + integration tests
+  - [ ] with Ollama: check real Coach messages (`ollama pull qwen2.5:1.5b`, `kharcha-agents`)
 - [ ] W9 Firebase auth + import-linter contracts + early cloud deploy + friends onboarded with consent
 
 ## Phase 4 — Own model (Pillar 1)
@@ -119,6 +124,8 @@
   thin httpx Telegram client (ADR-010 to write).
 - W6: per-user merchant/category overrides need a table, so `0003_corrections` was added and the
   §8.1 analyst views become `0004_analyst`. Corrections never change global aliases.
+- W8: Coach v0 (notifier) replaced by Coach v1 in `kharcha-agents`; the notifier only gates
+  `agent-results`. MCP transport for the tools arrives in W13 (same handlers).
 - W4: Alembic `0002_ai` added now (all §8 AI tables) because `kharcha-eval` writes `eval_runs`.
 - W4: `kharcha-agents` depends on `kharcha-ml` (path dep) to share parsing metrics; ml must keep
   heavy training deps in optional groups. `kharcha_agents.evals` touches the DB directly; exempt it

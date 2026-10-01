@@ -31,6 +31,7 @@ async def sessions(migrated_db: PgUrls) -> AsyncIterator[async_sessionmaker[Asyn
     engine = create_async_engine(migrated_db.async_url)
     async with engine.begin() as conn:
         for table in (
+            "agent_runs",
             "alerts_sent",
             "cash_ledger",
             "transaction_sources",

@@ -4,11 +4,14 @@ requires-python = "==3.12.*"
 
 [manifest]
 members = [
+    "kharcha-agent-runtime",
     "kharcha-agents",
     "kharcha-backend",
     "kharcha-common",
     "kharcha-ingest-api",
     "kharcha-insights",
+    "kharcha-mcp-finance",
+    "kharcha-mcp-notify",
     "kharcha-notifier",
     "kharcha-processor",
 ]
@@ -747,23 +750,52 @@ wheels = [
 ]
 
 [[package]]
-name = "kharcha-agents"
+name = "kharcha-agent-runtime"
 version = "0.1.0"
-source = { editable = "packages/agents" }
+source = { editable = "packages/agent_runtime" }
 dependencies = [
     { name = "kharcha-common" },
-    { name = "kharcha-insights" },
-    { name = "kharcha-ml" },
-    { name = "kharcha-processor" },
-    { name = "typer" },
+    { name = "litellm" },
+    { name = "pyyaml" },
+    { name = "tenacity" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "kharcha-common", editable = "packages/common" },
+    { name = "litellm", specifier = ">=1.55" },
+    { name = "pyyaml", specifier = ">=6.0" },
+    { name = "tenacity", specifier = ">=9.0" },
+]
+
+[[package]]
+name = "kharcha-agents"
+version = "0.1.0"
+source = { editable = "packages/agents" }
+dependencies = [
+    { name = "faststream", extra = ["confluent"] },
+    { name = "kharcha-agent-runtime" },
+    { name = "kharcha-common" },
+    { name = "kharcha-insights" },
+    { name = "kharcha-mcp-finance" },
+    { name = "kharcha-mcp-notify" },
+    { name = "kharcha-ml" },
+    { name = "kharcha-processor" },
+    { name = "prometheus-client" },
+    { name = "typer" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "faststream", extras = ["confluent"], specifier = ">=0.7" },
+    { name = "kharcha-agent-runtime", editable = "packages/agent_runtime" },
+    { name = "kharcha-common", editable = "packages/common" },
     { name = "kharcha-insights", editable = "packages/insights" },
+    { name = "kharcha-mcp-finance", editable = "packages/mcp_finance" },
+    { name = "kharcha-mcp-notify", editable = "packages/mcp_notify" },
     { name = "kharcha-ml", editable = "../ml" },
     { name = "kharcha-processor", editable = "packages/processor" },
+    { name = "prometheus-client", specifier = ">=0.21" },
     { name = "typer", specifier = ">=0.15" },
 ]
 
@@ -773,10 +805,13 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "alembic" },
+    { name = "kharcha-agent-runtime" },
     { name = "kharcha-agents" },
     { name = "kharcha-common" },
     { name = "kharcha-ingest-api" },
     { name = "kharcha-insights" },
+    { name = "kharcha-mcp-finance" },
+    { name = "kharcha-mcp-notify" },
     { name = "kharcha-notifier" },
     { name = "kharcha-processor" },
 ]
@@ -801,10 +836,13 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "alembic", specifier = ">=1.14" },
+    { name = "kharcha-agent-runtime", editable = "packages/agent_runtime" },
     { name = "kharcha-agents", editable = "packages/agents" },
     { name = "kharcha-common", editable = "packages/common" },
     { name = "kharcha-ingest-api", editable = "packages/ingest_api" },
     { name = "kharcha-insights", editable = "packages/insights" },
+    { name = "kharcha-mcp-finance", editable = "packages/mcp_finance" },
+    { name = "kharcha-mcp-notify", editable = "packages/mcp_notify" },
     { name = "kharcha-notifier", editable = "packages/notifier" },
     { name = "kharcha-processor", editable = "packages/processor" },
 ]
@@ -893,6 +931,38 @@ dependencies = [
 requires-dist = [
     { name = "kharcha-common", editable = "packages/common" },
     { name = "numpy", specifier = ">=2.1" },
+]
+
+[[package]]
+name = "kharcha-mcp-finance"
+version = "0.1.0"
+source = { editable = "packages/mcp_finance" }
+dependencies = [
+    { name = "kharcha-agent-runtime" },
+    { name = "kharcha-common" },
+    { name = "kharcha-insights" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "kharcha-agent-runtime", editable = "packages/agent_runtime" },
+    { name = "kharcha-common", editable = "packages/common" },
+    { name = "kharcha-insights", editable = "packages/insights" },
+]
+
+[[package]]
+name = "kharcha-mcp-notify"
+version = "0.1.0"
+source = { editable = "packages/mcp_notify" }
+dependencies = [
+    { name = "kharcha-agent-runtime" },
+    { name = "kharcha-common" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "kharcha-agent-runtime", editable = "packages/agent_runtime" },
+    { name = "kharcha-common", editable = "packages/common" },
 ]
 
 [[package]]

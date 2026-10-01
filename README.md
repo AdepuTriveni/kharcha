@@ -26,7 +26,13 @@ uv run pytest -m "not integration"                  # unit + contract tests
 uv run pytest -m integration                        # migrations (testcontainers) + LLM smoke test
 uv run kharcha-admin create-user --name Me          # prints an API key + KHARCHA_API_KEYS line for .env
 uv run kharcha-ingest                               # http://localhost:8000/healthz
-uv run kharcha-processor                            # parser + transaction writer (metrics :8001)
+uv run kharcha-admin seed-merchants                 # ~170 Indian merchants
+uv run kharcha-processor                            # rules -> teacher parser, dedup, cash (metrics :8001)
+uv run kharcha-insights                             # triggers + broke-date forecast (:8002)
+uv run kharcha-notifier                             # Telegram bot, policy gate, schedules (:8003)
+uv run kharcha-agents                               # orchestrator + Coach on the agent runtime (:8004)
+uv run kharcha-eval parsing ../ml/data/samples/parsing_sample.jsonl --parser rules
+uv run kharcha-eval forecast                        # synthetic backtest (±3-day accuracy, MAE)
 
 cd ../ml && uv sync && uv run pytest
 ```

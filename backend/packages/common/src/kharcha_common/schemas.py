@@ -12,6 +12,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from kharcha_common.events import (
+    AgentResultEvent,
     AgentTaskEvent,
     CashEvent,
     CleanTransactionEvent,
@@ -26,6 +27,7 @@ EXPORTED: dict[str, type[BaseModel]] = {
     "clean-transaction-event": CleanTransactionEvent,
     "cash-event": CashEvent,
     "agent-task-event": AgentTaskEvent,
+    "agent-result-event": AgentResultEvent,
     "model-shadow-event": ModelShadowEvent,
 }
 

@@ -21,7 +21,6 @@ from kharcha_common.linking import create_link_code
 from kharcha_common.topics import Topic
 from kharcha_insights.main import InsightsDeps, handle_clean_transaction
 from kharcha_notifier.bot import BotDeps, handle_update
-from kharcha_notifier.coach_v0 import handle_agent_task
 from kharcha_notifier.confirm import handle_cash_event as confirm_cash_event
 from kharcha_notifier.scheduler import send_due_summaries
 from kharcha_notifier.telegram import Button
@@ -32,6 +31,7 @@ from kharcha_processor.handlers import (
     handle_parsed_transaction,
     handle_raw_event,
 )
+from tests.integration.agent_path import deliver
 from tests.integration.conftest import PgUrls
 
 pytestmark = pytest.mark.integration
@@ -96,6 +96,7 @@ async def env(migrated_db: PgUrls) -> AsyncIterator[tuple[BotDeps, ProcessorDeps
     engine = create_async_engine(migrated_db.async_url)
     async with engine.begin() as conn:
         for table in (
+            "agent_runs",
             "alerts_sent",
             "cash_ledger",
             "transaction_sources",
@@ -245,7 +246,7 @@ async def test_frequency_trigger_sends_one_nudge(
     tasks = publisher.take(Topic.AGENT_TASKS)
     assert len(tasks) == 2  # 3rd and 4th payment; same task id (one dedupe key per week)
     for body in tasks:
-        await handle_agent_task(body, bot, model=None, now=noon_ist)
+        await deliver(body, bot, publisher, noon_ist)
 
     nudges = [s.text for s in messenger.sent if "zomato" in s.text]
     assert len(nudges) == 1
@@ -277,7 +278,7 @@ async def test_budget_trigger_and_daily_summary(
     assert all(b'"trigger":"BUDGET"' in t for t in tasks)
     sent_before = len(messenger.sent)
     for body in tasks:
-        await handle_agent_task(body, bot, model=None, now=noon_ist)
+        await deliver(body, bot, publisher, noon_ist)
     assert len(messenger.sent) == sent_before + 1
     assert "142% of your ₹500.00 budget" in messenger.sent[-1].text
 

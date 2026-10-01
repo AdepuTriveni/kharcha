@@ -28,8 +28,8 @@ from kharcha_ingest.auth import hash_api_key
 from kharcha_ingest.main import create_app
 from kharcha_insights.main import InsightsDeps, handle_clean_transaction
 from kharcha_notifier.bot import BotDeps
-from kharcha_notifier.coach_v0 import handle_agent_task
 from kharcha_notifier.telegram import Button
+from tests.integration.agent_path import deliver
 from tests.integration.conftest import PgUrls
 
 pytestmark = pytest.mark.integration
@@ -87,6 +87,7 @@ async def env(migrated_db: PgUrls) -> AsyncIterator[Env]:
         for table in (
             "forecasts",
             "user_merchant_overrides",
+            "agent_runs",
             "alerts_sent",
             "cash_ledger",
             "transaction_sources",
@@ -252,8 +253,8 @@ async def test_broke_date_moving_earlier_nudges_once(env: Env) -> None:
 
     messenger = FakeMessenger()
     bot = BotDeps(env.sessions, env.publisher, fakeredis.FakeAsyncRedis(), messenger)
-    await handle_agent_task(task_body, bot, model=None, now=now)
-    await handle_agent_task(task_body, bot, model=None, now=now)  # redelivery
+    await deliver(task_body, bot, env.publisher, now)
+    await deliver(task_body, bot, env.publisher, now)  # redelivery
     assert len(messenger.sent) == 1
     assert "money runs out around" in messenger.sent[0]
     assert "₹599.99" in messenger.sent[0]  # ₹900 + ₹200 cash - 1 paise - ₹500

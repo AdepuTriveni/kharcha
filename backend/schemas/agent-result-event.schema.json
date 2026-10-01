@@ -1,0 +1,240 @@
+{
+  "$defs": {
+    "AgentName": {
+      "enum": [
+        "COACH",
+        "CASH_DETECTIVE",
+        "REFUND_ADVOCATE",
+        "MEMORY_KEEPER"
+      ],
+      "title": "AgentName",
+      "type": "string"
+    },
+    "AgentResultPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "agent": {
+          "$ref": "#/$defs/AgentName"
+        },
+        "dedupeKey": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dedupekey"
+        },
+        "drafts": {
+          "items": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "title": "Drafts",
+          "type": "array"
+        },
+        "memoryWrites": {
+          "items": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "title": "Memorywrites",
+          "type": "array"
+        },
+        "proposals": {
+          "items": {
+            "$ref": "#/$defs/Proposal"
+          },
+          "maxItems": 3,
+          "title": "Proposals",
+          "type": "array"
+        },
+        "runId": {
+          "title": "Runid",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/AgentRunStatus"
+        },
+        "taskId": {
+          "title": "Taskid",
+          "type": "string"
+        },
+        "trigger": {
+          "$ref": "#/$defs/AgentTrigger"
+        }
+      },
+      "required": [
+        "taskId",
+        "agent",
+        "runId",
+        "status",
+        "trigger"
+      ],
+      "title": "AgentResultPayload",
+      "type": "object"
+    },
+    "AgentRunStatus": {
+      "enum": [
+        "OK",
+        "BUDGET_EXCEEDED",
+        "ERROR",
+        "TIMEOUT",
+        "DENIED_TOOL"
+      ],
+      "title": "AgentRunStatus",
+      "type": "string"
+    },
+    "AgentTrigger": {
+      "enum": [
+        "WEEKLY_REVIEW",
+        "RISK_MOMENT",
+        "MISSING_CASH",
+        "REFUND_OVERDUE",
+        "FEEDBACK",
+        "USER_MESSAGE",
+        "BUDGET",
+        "FREQUENCY",
+        "BROKE_DATE_MOVED"
+      ],
+      "title": "AgentTrigger",
+      "type": "string"
+    },
+    "Proposal": {
+      "additionalProperties": false,
+      "description": "A message an agent wants sent. Only the notifier's policy gate can send it (rule 5).",
+      "properties": {
+        "buttons": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 4,
+          "title": "Buttons",
+          "type": "array"
+        },
+        "category": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Category"
+        },
+        "groundingNumbers": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Groundingnumbers",
+          "type": "array"
+        },
+        "reason": {
+          "default": "",
+          "title": "Reason",
+          "type": "string"
+        },
+        "templated": {
+          "default": false,
+          "title": "Templated",
+          "type": "boolean"
+        },
+        "text": {
+          "maxLength": 400,
+          "title": "Text",
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/ProposalType"
+        }
+      },
+      "required": [
+        "type",
+        "text"
+      ],
+      "title": "Proposal",
+      "type": "object"
+    },
+    "ProposalType": {
+      "enum": [
+        "ROAST",
+        "NUDGE",
+        "HYPE",
+        "QUESTION",
+        "INFO"
+      ],
+      "title": "ProposalType",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "causationId": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Causationid"
+    },
+    "eventId": {
+      "title": "Eventid",
+      "type": "string"
+    },
+    "occurredAt": {
+      "format": "date-time",
+      "title": "Occurredat",
+      "type": "string"
+    },
+    "payload": {
+      "$ref": "#/$defs/AgentResultPayload"
+    },
+    "producedAt": {
+      "format": "date-time",
+      "title": "Producedat",
+      "type": "string"
+    },
+    "producer": {
+      "minLength": 1,
+      "title": "Producer",
+      "type": "string"
+    },
+    "schemaVersion": {
+      "default": 1,
+      "title": "Schemaversion",
+      "type": "integer"
+    },
+    "type": {
+      "minLength": 1,
+      "title": "Type",
+      "type": "string"
+    },
+    "userId": {
+      "minLength": 1,
+      "title": "Userid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "userId",
+    "type",
+    "occurredAt",
+    "producer",
+    "payload"
+  ],
+  "title": "EventEnvelope[AgentResultPayload]",
+  "type": "object"
+}

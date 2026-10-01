@@ -16,9 +16,9 @@ from kharcha_common.logging import configure_logging
 from kharcha_common.settings import Settings, get_settings
 from kharcha_common.topics import Topic
 from kharcha_notifier.bot import BotDeps, handle_update
-from kharcha_notifier.coach_v0 import COACH_CONSUMER, LiteLLMTextModel, TextModel, handle_agent_task
 from kharcha_notifier.confirm import CONFIRM_CONSUMER, handle_cash_event
-from kharcha_notifier.scheduler import parse_hhmm, run_daily_summaries
+from kharcha_notifier.results import RESULTS_CONSUMER, handle_agent_result
+from kharcha_notifier.scheduler import parse_hhmm, run_daily_summaries, run_weekly_reviews
 from kharcha_notifier.telegram import Messenger, TelegramClient
 
 log = logging.getLogger(__name__)
@@ -30,9 +30,7 @@ def _key(message: KafkaMessage) -> bytes | None:
     return key if isinstance(key, bytes) else None
 
 
-def build_broker(
-    settings: Settings, deps: BotDeps, broker: KafkaBroker, model: TextModel | None
-) -> KafkaBroker:
+def build_broker(settings: Settings, deps: BotDeps, broker: KafkaBroker) -> KafkaBroker:
     publisher = BrokerPublisher(broker)
 
     @broker.subscriber(
@@ -52,18 +50,18 @@ def build_broker(
         )
 
     @broker.subscriber(
-        Topic.AGENT_TASKS,
-        group_id=COACH_CONSUMER,
+        Topic.AGENT_RESULTS,
+        group_id=RESULTS_CONSUMER,
         auto_offset_reset="earliest",
         ack_policy=AckPolicy.NACK_ON_ERROR,
     )
-    async def on_task(message: KafkaMessage) -> None:
+    async def on_result(message: KafkaMessage) -> None:
         await run_with_retry_and_dlt(
-            lambda body: handle_agent_task(body, deps, model),
+            lambda body: handle_agent_result(body, deps),
             body=message.body,
             key=_key(message),
-            topic=Topic.AGENT_TASKS,
-            consumer=COACH_CONSUMER,
+            topic=Topic.AGENT_RESULTS,
+            consumer=RESULTS_CONSUMER,
             publisher=publisher,
         )
 
@@ -97,13 +95,13 @@ async def serve(settings: Settings) -> None:
         telegram = TelegramClient(settings.telegram_bot_token, http, settings.telegram_api_base)
         messenger: Messenger = telegram
         deps = BotDeps(make_sessionmaker(engine), BrokerPublisher(broker), redis, messenger)
-        model = LiteLLMTextModel(settings) if settings.coach_llm_enabled else None
-        build_broker(settings, deps, broker, model)
+        build_broker(settings, deps, broker)
         await broker.start()
         try:
             await asyncio.gather(
                 poll_telegram(telegram, deps),
                 run_daily_summaries(deps, parse_hhmm(settings.daily_summary_time)),
+                run_weekly_reviews(deps),
             )
         finally:
             await broker.stop()

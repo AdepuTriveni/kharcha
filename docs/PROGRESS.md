@@ -19,7 +19,8 @@
 ## Phase 1 — Usable by me
 - [ ] W1 Capture + basic redaction + Room outbox + list screen
   - [x] code written (capture service, SMS receiver in sideload, redactor + corpus, outbox, uploader, screens)
-  - [ ] first Gradle build + unit tests green; test on phone
+  - [x] both flavors build; 13 unit tests green (redaction corpus, uploader, contract)
+  - [ ] test on a phone (₹10 UPI payment appears redacted)
 - [ ] W2 Upload API + raw-events + teacher-LLM parser + validation + IT test
   - [x] backend: `/v1/events:batch`, pre-filter, teacher LLM, §10.2 validation, DLT, transactions, e2e IT
   - [ ] Android WorkManager uploader (with W1)
@@ -28,11 +29,15 @@
   - [x] code: notifier (bot, link codes, /summary /cash /undo /level /budget, cash confirm + Undo,
         daily summary, policy gate v0, coach v0), insights triggers, processor cash parser + ledger
   - [x] unit tests (cash parser, grounding, policy, texts)
-  - [ ] integration tests (bot flows, triggers -> coach -> Telegram) ; update §7 for new triggers
+  - [x] integration tests (bot flows, triggers -> coach, daily summary once); §7 + ADR-010
+  - [ ] live test with a real bot token
 - [ ] ✅ Using it daily
 
 ## Phase 2 — Correct data
 - [ ] W4 Dedup, merchants, categories, labeling CLI, first parsing eval
+  - [x] dedup + special cases, ~170 seed merchants, categories (unit + integration tests)
+  - [x] labeling CLI (`kharcha-label`), template signatures, metrics, synthetic sample set
+  - [ ] `kharcha-admin export-labeling` + `kharcha-eval parsing` report
 - [ ] W5 Rules + synthesis + shadow + DLTs + metrics
 - [ ] W6 Cash wallet, quick-add, widget, redaction corpus, corrections
 

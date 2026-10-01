@@ -16,7 +16,8 @@ from kharcha_common.events import (
 )
 from kharcha_common.ids import uuid7
 from kharcha_common.merchants import seed_merchants
-from kharcha_processor.dedup import apply_parsed, clean_payload
+from kharcha_common.transactions import clean_payload
+from kharcha_processor.dedup import apply_parsed
 from tests.integration.conftest import PgUrls
 
 pytestmark = pytest.mark.integration

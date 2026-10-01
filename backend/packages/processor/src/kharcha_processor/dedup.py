@@ -23,10 +23,9 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from kharcha_common.categories import Category, is_essential
-from kharcha_common.db.models import Merchant, RawEventRow, TransactionRow, TransactionSource
+from kharcha_common.db.models import RawEventRow, TransactionRow, TransactionSource
 from kharcha_common.events import (
     Channel,
-    CleanTransactionPayload,
     Direction,
     ParsedTransactionPayload,
     TxnKind,
@@ -258,7 +257,7 @@ async def apply_parsed(
         )
     ).one()
     meta = SourceMeta(raw.type, raw.source_app)
-    match = await resolve_merchant(session, parsed.merchant_raw)
+    match = await resolve_merchant(session, parsed.merchant_raw, user_id)
     now = utcnow()
 
     for candidate in await _candidates(session, user_id, parsed):
@@ -317,34 +316,3 @@ async def apply_parsed(
         changed.append(partner)
     await session.flush()
     return changed
-
-
-async def merchant_name(session: AsyncSession, merchant_id: str | None) -> str | None:
-    if merchant_id is None:
-        return None
-    return (
-        await session.execute(select(Merchant.name).where(Merchant.id == merchant_id))
-    ).scalar_one_or_none()
-
-
-async def clean_payload(session: AsyncSession, row: TransactionRow) -> CleanTransactionPayload:
-    sources = (
-        await session.execute(
-            select(TransactionSource.raw_event_id).where(TransactionSource.transaction_id == row.id)
-        )
-    ).scalars()
-    return CleanTransactionPayload(
-        transaction_id=row.id,
-        amount_paise=row.amount_paise,
-        direction=Direction(row.direction),
-        kind=TxnKind(row.kind),
-        status=TxnStatus(row.status),
-        merchant_id=row.merchant_id,
-        merchant_name=await merchant_name(session, row.merchant_id),
-        category=row.category,
-        is_essential=row.is_essential,
-        reference_id=row.reference_id,
-        txn_time=row.txn_time,
-        source_event_ids=sorted(str(s) for s in sources),
-        version=row.version,
-    )

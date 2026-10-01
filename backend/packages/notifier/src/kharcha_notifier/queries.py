@@ -3,13 +3,14 @@
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from kharcha_common.cash import CashBalance, balance_from_totals
+from kharcha_common.cash import CashBalance
 from kharcha_common.db.models import AlertSent, CashLedgerRow, TransactionRow, User
 from kharcha_common.events import CashEntryType, TxnKind, TxnStatus
 from kharcha_common.time import IST, to_ist
+from kharcha_common.wallet import cash_balance
 from kharcha_notifier.policy import AlertKind, Counts
 
 
@@ -22,15 +23,6 @@ async def user_by_chat(session: AsyncSession, chat_id: int) -> User | None:
     return (
         await session.execute(select(User).where(User.telegram_chat_id == chat_id))
     ).scalar_one_or_none()
-
-
-async def cash_balance(session: AsyncSession, user_id: str) -> CashBalance:
-    rows = await session.execute(
-        select(CashLedgerRow.entry_type, func.sum(CashLedgerRow.amount_paise))
-        .where(CashLedgerRow.user_id == user_id)
-        .group_by(CashLedgerRow.entry_type)
-    )
-    return balance_from_totals({entry: int(total) for entry, total in rows.all()})
 
 
 @dataclass(frozen=True, slots=True)
@@ -103,15 +95,6 @@ async def alert_counts(session: AsyncSession, user_id: str, now: datetime) -> Co
         roasts_week=sum(kind == AlertKind.ROAST.value for kind, _ in rows),
         non_urgent_today=sum(kind in non_urgent for kind in kinds_today),
     )
-
-
-async def delete_cash_entry(session: AsyncSession, user_id: str, ledger_id: str) -> bool:
-    result = await session.execute(
-        delete(CashLedgerRow)
-        .where(CashLedgerRow.id == ledger_id, CashLedgerRow.user_id == user_id)
-        .returning(CashLedgerRow.id)
-    )
-    return result.first() is not None
 
 
 async def latest_cash_entry_id(session: AsyncSession, user_id: str, since: datetime) -> str | None:

@@ -16,6 +16,7 @@ from sqlalchemy import update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from kharcha_common import wallet
 from kharcha_common.cash_parser import parse_cash_entry
 from kharcha_common.categories import Category
 from kharcha_common.db.models import Budget, RawEventRow, User
@@ -75,7 +76,7 @@ async def handle_update(update: dict[str, Any], deps: BotDeps) -> None:
             await deps.messenger.send_message(chat_id, texts.summary_text(summary))
         case "/cash":
             async with deps.sessions() as session:
-                balance = await queries.cash_balance(session, user.id)
+                balance = await wallet.cash_balance(session, user.id)
             await deps.messenger.send_message(chat_id, balance.describe())
         case "/undo":
             await _undo_latest(chat_id, user.id, deps)
@@ -151,7 +152,7 @@ async def _free_text(
 async def _undo_latest(chat_id: int, user_id: str, deps: BotDeps) -> None:
     async with deps.sessions.begin() as session:
         ledger_id = await queries.latest_cash_entry_id(session, user_id, utcnow() - UNDO_WINDOW)
-        removed = ledger_id is not None and await queries.delete_cash_entry(
+        removed = ledger_id is not None and await wallet.delete_cash_entry(
             session, user_id, ledger_id
         )
     await deps.messenger.send_message(
@@ -170,7 +171,7 @@ async def _handle_callback(callback: dict[str, Any], deps: BotDeps) -> None:
         user = await queries.user_by_chat(session, chat_id)
         removed = False
         if user is not None and data.startswith("undo:"):
-            removed = await queries.delete_cash_entry(session, user.id, data.removeprefix("undo:"))
+            removed = await wallet.delete_cash_entry(session, user.id, data.removeprefix("undo:"))
     await deps.messenger.answer_callback(callback_id, "Undone" if removed else "Already gone")
     if removed and isinstance(message.get("message_id"), int):
         await deps.messenger.edit_message_text(

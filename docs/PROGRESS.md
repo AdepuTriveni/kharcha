@@ -46,6 +46,9 @@
   - [x] `kharcha-eval parsing --parser rules|teacher|tiered`
   - [ ] "≥ 60% of my events parsed by rules": check `kharcha_parse_method_total` after a week of real use
 - [ ] W6 Cash wallet, quick-add, widget, redaction corpus, corrections
+  - [x] backend: ATM debit -> cash-events, WIDGET_TAP -> cash parser, `POST/DELETE /v1/cash`,
+        `GET /v1/cash/balance`, `GET/PATCH /v1/transactions` (corrections -> per-user overrides,
+        Alembic 0003_corrections), integration tests
 
 ## Phase 3 — Forecast, harness, friends
 - [ ] W7 Forecast + what-if + backtest
@@ -106,6 +109,8 @@
 - W3 decisions: added BUDGET/FREQUENCY/BROKE_DATE_MOVED triggers + `dedupeKey` to AgentTaskPayload;
   temporary coach consumer in notifier until W8; notifier listens to cash-events for confirmations;
   thin httpx Telegram client (ADR-010 to write).
+- W6: per-user merchant/category overrides need a table, so `0003_corrections` was added and the
+  §8.1 analyst views become `0004_analyst`. Corrections never change global aliases.
 - W4: Alembic `0002_ai` added now (all §8 AI tables) because `kharcha-eval` writes `eval_runs`.
 - W4: `kharcha-agents` depends on `kharcha-ml` (path dep) to share parsing metrics; ml must keep
   heavy training deps in optional groups. `kharcha_agents.evals` touches the DB directly; exempt it

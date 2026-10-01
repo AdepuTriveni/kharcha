@@ -12,22 +12,27 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from kharcha_common.cash_parser import parse_cash_entry
 from kharcha_common.events import (
+    CashEntryType,
     CashEvent,
     CashEventPayload,
     CleanTransactionEvent,
+    CleanTransactionPayload,
     ModelShadowEvent,
     ParsedTransactionEvent,
     ParsedTransactionPayload,
     RawEvent,
     RawEventType,
+    TxnKind,
+    TxnStatus,
 )
 from kharcha_common.idempotency import is_processed, mark_processed
 from kharcha_common.kafka import EventPublisher, PermanentError, derived_event_id
 from kharcha_common.templates import sender_key
 from kharcha_common.topics import Topic
+from kharcha_common.transactions import clean_payload
 from kharcha_processor import metrics
 from kharcha_processor.cash import write_cash_entry
-from kharcha_processor.dedup import apply_parsed, clean_payload
+from kharcha_processor.dedup import apply_parsed
 from kharcha_processor.parser import Failed, TieredParse, parse_tiered
 from kharcha_processor.rule_store import record_observation, rules_for
 from kharcha_processor.rules import CompiledRule
@@ -45,8 +50,10 @@ CLEAN_TYPE = "CLEAN_TRANSACTION"
 CASH_TYPE = "CASH_EVENT"
 SHADOW_TYPE = "MODEL_SHADOW"
 
-# MANUAL_VOICE / WIDGET_TAP / BILL_PHOTO get their own parsers (W6, §21).
+# MANUAL_VOICE / BILL_PHOTO get their own parsers (§21).
 BANK_MESSAGE_TYPES = frozenset({RawEventType.RAW_NOTIFICATION, RawEventType.RAW_SMS})
+# Chat/app quick-add text and widget presets ("20 chai") go through the cash parser.
+CASH_TEXT_TYPES = frozenset({RawEventType.MANUAL_TEXT, RawEventType.WIDGET_TAP})
 
 
 @dataclass(frozen=True)
@@ -86,7 +93,7 @@ async def handle_raw_event(body: bytes, deps: ProcessorDeps) -> None:
             shadow=in_shadow_sample(event.event_id, deps.shadow_rate),
         )
         await _publish_parse(event, parse, deps)
-    elif event.type == RawEventType.MANUAL_TEXT:
+    elif event.type in CASH_TEXT_TYPES:
         await _handle_manual_text(event, deps)
     else:
         log.info("skipped event type", extra={**extra, "reason": event.type})
@@ -193,3 +200,27 @@ async def handle_parsed_transaction(body: bytes, deps: ProcessorDeps) -> None:
                 payload=payload,
             ),
         )
+        if payload.kind is TxnKind.ATM_WITHDRAWAL and payload.status is TxnStatus.SUCCESS:
+            await _publish_atm_cash(event, payload, deps)
+
+
+async def _publish_atm_cash(
+    event: ParsedTransactionEvent, payload: CleanTransactionPayload, deps: ProcessorDeps
+) -> None:
+    """ATM debit -> cash in hand (§11.2, §13). One id per transaction, so merges repeat it."""
+    await deps.publisher.publish_event(
+        Topic.CASH_EVENTS,
+        CashEvent(
+            event_id=derived_event_id("atm", payload.transaction_id),
+            user_id=event.user_id,
+            type=CASH_TYPE,
+            occurred_at=payload.txn_time,
+            producer=PRODUCER,
+            causation_id=event.event_id,
+            payload=CashEventPayload(
+                entry_type=CashEntryType.ATM_WITHDRAWAL,
+                amount_paise=payload.amount_paise,
+                related_transaction_id=payload.transaction_id,
+            ),
+        ),
+    )

@@ -37,7 +37,7 @@ AI_TABLES = {
     "model_versions",
     "eval_runs",
 }
-ALL_TABLES = CORE_TABLES | AI_TABLES
+ALL_TABLES = CORE_TABLES | AI_TABLES | {"user_merchant_overrides"}
 
 
 def _tables(sync_url: str) -> set[str]:
@@ -54,6 +54,9 @@ def test_upgrade_and_downgrade(postgres: PostgresContainer) -> None:
 
     command.upgrade(cfg, "head")
     assert _tables(urls.sync_url) == ALL_TABLES
+
+    command.downgrade(cfg, "0002_ai")
+    assert _tables(urls.sync_url) == CORE_TABLES | AI_TABLES
 
     command.downgrade(cfg, "0001_core")
     assert _tables(urls.sync_url) == CORE_TABLES

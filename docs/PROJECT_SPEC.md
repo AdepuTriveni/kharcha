@@ -506,7 +506,8 @@ All under `/v1`, JSON, Firebase ID token auth (Phase 1: static per-user API key)
 | Method | Path | Purpose |
 |--------|------|---------|
 | POST | `/v1/events:batch` | Upload ≤ 100 raw events; idempotent on `eventId` |
-| POST | `/v1/cash` | Manual cash entry |
+| POST | `/v1/cash` | Manual cash entry (`entryId` from the client, idempotent) |
+| DELETE | `/v1/cash/{entryId}` | Undo a cash entry (by `entryId` or the uploaded MANUAL_TEXT/WIDGET_TAP `eventId`) |
 | POST | `/v1/bill-photo` | Multipart image → extraction draft for confirmation (§21) |
 | GET | `/v1/transactions` | Cursor-paginated list, filters |
 | PATCH | `/v1/transactions/{id}` | User correction → aliases, training signal |

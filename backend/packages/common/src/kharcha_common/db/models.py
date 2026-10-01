@@ -163,3 +163,14 @@ class ParseRule(Base):
     match_count: Mapped[int] = mapped_column(Integer, server_default="0")
     mismatch_count: Mapped[int] = mapped_column(Integer, server_default="0")
     created_at: Mapped[datetime] = mapped_column(TZ, server_default="now()")
+
+
+class UserMerchantOverride(Base):
+    __tablename__ = "user_merchant_overrides"
+
+    user_id: Mapped[str] = mapped_column(Text, ForeignKey("users.id"), primary_key=True)
+    alias: Mapped[str] = mapped_column(Text, primary_key=True)  # normalize_merchant(raw)
+    merchant_id: Mapped[str | None] = mapped_column(Text, ForeignKey("merchants.id"))
+    category: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(TZ, server_default="now()")
+    updated_at: Mapped[datetime] = mapped_column(TZ, server_default="now()")

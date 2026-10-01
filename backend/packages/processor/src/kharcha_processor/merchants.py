@@ -1,7 +1,8 @@
 """Merchant resolution (PROJECT_SPEC §11.3): exact alias -> trigram >= 0.6 -> unknown.
 
-Person VPAs map to TRANSFERS and are never matched to a merchant. Teacher suggestions
-(source=LLM) and user corrections (source=USER) arrive in W5/W6.
+A user's own correction (``user_merchant_overrides``) wins for that user, before anything
+else. Person VPAs map to TRANSFERS and are never matched to a merchant. Teacher suggestions
+(source=LLM) are not used yet.
 """
 
 from dataclasses import dataclass
@@ -11,7 +12,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from kharcha_common.categories import Category
-from kharcha_common.db.models import Merchant, MerchantAlias
+from kharcha_common.db.models import Merchant, MerchantAlias, UserMerchantOverride
 from kharcha_common.merchants import is_person_vpa, normalize_merchant
 
 TRIGRAM_MATCH = 0.6
@@ -21,6 +22,7 @@ class MatchMethod(StrEnum):
     EXACT = "EXACT"
     TRIGRAM = "TRIGRAM"
     PERSON = "PERSON"
+    USER = "USER"
     NONE = "NONE"
 
 
@@ -36,12 +38,30 @@ UNKNOWN = MerchantMatch(None, None, Category.OTHER, MatchMethod.NONE)
 PERSON = MerchantMatch(None, None, Category.TRANSFERS, MatchMethod.PERSON)
 
 
-async def resolve_merchant(session: AsyncSession, raw: str | None) -> MerchantMatch:
+async def _user_override(session: AsyncSession, user_id: str, key: str) -> MerchantMatch | None:
+    row = (
+        await session.execute(
+            select(UserMerchantOverride, Merchant.name)
+            .outerjoin(Merchant, Merchant.id == UserMerchantOverride.merchant_id)
+            .where(UserMerchantOverride.user_id == user_id, UserMerchantOverride.alias == key)
+        )
+    ).first()
+    if row is None:
+        return None
+    override, name = row
+    return MerchantMatch(override.merchant_id, name, Category(override.category), MatchMethod.USER)
+
+
+async def resolve_merchant(
+    session: AsyncSession, raw: str | None, user_id: str | None = None
+) -> MerchantMatch:
     if not raw:
         return UNKNOWN
+    key = normalize_merchant(raw)
+    if key and user_id is not None and (override := await _user_override(session, user_id, key)):
+        return override
     if is_person_vpa(raw):
         return PERSON
-    key = normalize_merchant(raw)
     if not key:
         return UNKNOWN
 

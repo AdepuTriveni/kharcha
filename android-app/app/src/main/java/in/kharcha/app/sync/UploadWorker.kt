@@ -20,6 +20,7 @@ import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.qualifiers.ApplicationContext
+import `in`.kharcha.app.llm.DeviceParseStep
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,11 +30,16 @@ class UploadWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val uploader: Uploader,
+    private val deviceParse: DeviceParseStep,
 ) : CoroutineWorker(context, params) {
 
-    override suspend fun doWork(): Result = when (uploader.drain()) {
-        UploadOutcome.DONE, UploadOutcome.NEEDS_CONFIG -> Result.success()
-        UploadOutcome.RETRY -> Result.retry()
+    override suspend fun doWork(): Result {
+        // Tier 2 first (no-op without an installed model); a failure here never blocks upload.
+        runCatching { deviceParse.annotatePending() }
+        return when (uploader.drain()) {
+            UploadOutcome.DONE, UploadOutcome.NEEDS_CONFIG -> Result.success()
+            UploadOutcome.RETRY -> Result.retry()
+        }
     }
 
     /** Needed for expedited work on Android < 12, where it runs as a foreground service. */

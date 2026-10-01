@@ -38,12 +38,19 @@ def build_broker(
     publisher = BrokerPublisher(broker)
     if rule_writer is None and settings.rule_synthesis_enabled:
         rule_writer = TeacherRuleWriter(settings)
+    model = (
+        TeacherLLM(settings.model_copy(update={"llm_model": settings.server_model}))
+        if settings.server_model
+        else None
+    )
     deps = ProcessorDeps(
         sessions=make_sessionmaker(make_engine(settings)),
         publisher=publisher,
         teacher=teacher or TeacherLLM(settings),
         rule_writer=rule_writer,
         shadow_rate=settings.parser_shadow_rate,
+        model=model,
+        model_shadow=settings.server_model_mode == "SHADOW",
     )
 
     @broker.subscriber(

@@ -44,6 +44,17 @@ android {
         compose = true
         buildConfig = true
     }
+
+    // On-device model (tier 2) needs the NDK and a llama.cpp checkout; off by default so the
+    // normal build and CI stay fast. Without it LlamaBridge.isAvailable is false.
+    if (project.hasProperty("kharcha.llama")) {
+        val llamaDir = project.property("llama.dir").toString()
+        defaultConfig {
+            ndk { abiFilters += listOf("arm64-v8a") }
+            externalNativeBuild { cmake { arguments += listOf("-DLLAMA_DIR=$llamaDir", "-DGGML_NATIVE=OFF") } }
+        }
+        externalNativeBuild { cmake { path = file("src/main/cpp/CMakeLists.txt") } }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

@@ -1,7 +1,8 @@
-"""Tiered parser (PROJECT_SPEC §10): pre-filter -> rules -> teacher LLM, validation everywhere.
+"""Tiered parser (PROJECT_SPEC §10): pre-filter -> rules -> device model -> own server model
+-> teacher LLM, with §10.2 validation on every tier's output.
 
-The own model (tiers 2-3) arrives in Phase 4. ``parse_tiered`` also reports what the rules
-did (for counters, promotion and auto-disable) and an optional shadow comparison (§10.5).
+``parse_tiered`` also reports what the rules did (counters, promotion, auto-disable) and an
+optional shadow comparison (§10.5) for the ``model-shadow`` topic.
 """
 
 from collections.abc import Sequence
@@ -15,6 +16,7 @@ from kharcha_common.events import (
     TierOutcome,
     TierResult,
 )
+from kharcha_common.money import paise_to_rupees
 from kharcha_processor import metrics
 from kharcha_processor.extraction import ExtractionResult
 from kharcha_processor.prefilter import DropReason, prefilter
@@ -24,6 +26,8 @@ from kharcha_processor.validation import Validated, ValidationFailure, validate_
 
 TEACHER_CONFIDENCE = 0.9
 RULE_CONFIDENCE = 0.99
+DEVICE_CONFIDENCE = 0.95
+SERVER_MODEL_CONFIDENCE = 0.95
 
 
 @dataclass(frozen=True, slots=True)
@@ -107,8 +111,13 @@ def _tier_result(method: ParseMethod, version: str | None, outcome: ParseOutcome
 
 
 async def _teacher_tier(
-    event: RawEvent, text: str, teacher: Extractor
+    event: RawEvent,
+    text: str,
+    teacher: Extractor,
+    method: ParseMethod = ParseMethod.TEACHER_LLM,
+    confidence: float = TEACHER_CONFIDENCE,
 ) -> tuple[ParseOutcome, ExtractionResult | None]:
+    """One model tier (own model or teacher): extract, then section 10.2 validation."""
     try:
         result = await teacher.extract(
             sender=event.payload.sender, source_app=event.payload.source_app, text=text
@@ -117,11 +126,11 @@ async def _teacher_tier(
         return Failed(ValidationFailure.BAD_MODEL_OUTPUT), None
     checked = validate_extraction(result, text)
     if checked is ValidationFailure.NOT_TRANSACTION:
-        return NotTransaction(ParseMethod.TEACHER_LLM), result
+        return NotTransaction(method), result
     if isinstance(checked, ValidationFailure):
         return Failed(checked), result
     payload = _payload(
-        event, result, checked, ParseMethod.TEACHER_LLM, version=teacher.model_version
+        event, result, checked, method, version=teacher.model_version, confidence=confidence
     )
     return payload, result
 
@@ -144,8 +153,15 @@ async def parse_tiered(
     rules: Sequence[CompiledRule] = (),
     *,
     shadow: bool = False,
+    model: Extractor | None = None,
+    model_shadow: bool = False,
 ) -> TieredParse:
-    """Parse one bank message. ``shadow`` also runs the teacher behind a matching rule."""
+    """Parse one bank message.
+
+    ``shadow`` (a sampled event) also runs the teacher behind a matching rule, and the own
+    model behind the teacher while the model is in SHADOW (``model_shadow``). An ACTIVE own
+    model (tier 3) answers before the teacher; if its output fails validation the teacher runs.
+    """
     text = event.payload.text
     if (reason := prefilter(text)) is not None:
         parse = TieredParse(Dropped(reason))
@@ -176,9 +192,8 @@ async def parse_tiered(
         _count(parse.outcome)
         return parse
 
-    teacher_outcome, teacher_result = await _teacher_tier(event, text, teacher)
-
     if rule_hit is not None:
+        teacher_outcome, teacher_result = await _teacher_tier(event, text, teacher)
         rule, extracted, payload = rule_hit
         agreed = teacher_result is not None and same_extraction(extracted, teacher_result)
         observations.append(RuleObservation(rule.id, agreed=agreed))
@@ -198,21 +213,91 @@ async def parse_tiered(
         _count(parse.outcome)
         return parse
 
-    parse = TieredParse(teacher_outcome, observations)
-    if isinstance(teacher_outcome, ParsedTransactionPayload):
-        assert teacher_result is not None
+    # No rule: tier 2 (device result, re-validated) -> tier 3 (own model) -> tier 4 (teacher).
+    outcome: ParseOutcome | None = None
+    result: ExtractionResult | None = None
+    device = _device_tier(event, text)
+    if device is not None:
+        outcome, result = device
+    elif model is not None and not model_shadow:
+        tried, tried_result = await _teacher_tier(
+            event, text, model, ParseMethod.SERVER_MODEL, SERVER_MODEL_CONFIDENCE
+        )
+        if not isinstance(tried, Failed):
+            outcome, result = tried, tried_result
+    shadow_payload: ModelShadowPayload | None = None
+    if outcome is None:
+        outcome, result = await _teacher_tier(event, text, teacher)
+        if model is not None and model_shadow and shadow:
+            model_outcome, model_result = await _teacher_tier(
+                event, text, model, ParseMethod.SERVER_MODEL, SERVER_MODEL_CONFIDENCE
+            )
+            agreed = _agree(result, model_result)
+            metrics.SHADOW_COMPARISONS.labels(str(agreed).lower()).inc()
+            shadow_payload = ModelShadowPayload(
+                raw_event_id=event.event_id,
+                tier_results=[
+                    _tier_result(ParseMethod.TEACHER_LLM, teacher.model_version, outcome),
+                    _tier_result(ParseMethod.SERVER_MODEL, model.model_version, model_outcome),
+                ],
+                agreement=agreed,
+            )
+
+    parse = TieredParse(outcome, observations, shadow=shadow_payload)
+    if isinstance(outcome, ParsedTransactionPayload):
+        assert result is not None
         for rule in (r for r in rules if not r.is_active):
             extracted = apply_rule(rule, text)
             if extracted is None:
                 continue
             matched_any = True
             valid = not isinstance(validate_extraction(extracted, text), ValidationFailure)
-            agreed = valid and same_extraction(extracted, teacher_result)
+            agreed = valid and same_extraction(extracted, result)
             observations.append(RuleObservation(rule.id, agreed=agreed))
         if not matched_any:
-            parse.uncovered = teacher_result
+            parse.uncovered = result
     _count(parse.outcome)
     return parse
+
+
+def _agree(a: ExtractionResult | None, b: ExtractionResult | None) -> bool:
+    if a is None or b is None:
+        return a is None and b is None
+    if not a.is_transaction or not b.is_transaction:
+        return a.is_transaction == b.is_transaction
+    return same_extraction(a, b)
+
+
+def _device_tier(
+    event: RawEvent, text: str
+) -> tuple[ParsedTransactionPayload, ExtractionResult] | None:
+    """Tier 2: the phone's own-model result, accepted only if it passes server validation."""
+    device = event.payload.device_parse
+    if device is None:
+        return None
+    r = device.result
+    extracted = ExtractionResult(
+        is_transaction=True,
+        amount=str(paise_to_rupees(r.amount_paise)),
+        direction=r.direction,
+        channel=r.channel,
+        status=r.status,
+        merchant_raw=r.merchant_raw,
+        reference_id=r.reference_id,
+    )
+    checked = validate_extraction(extracted, text)
+    if isinstance(checked, ValidationFailure):
+        metrics.PARSE_FAILURES.labels(f"DEVICE_{checked.value}").inc()
+        return None
+    payload = _payload(
+        event,
+        extracted,
+        checked,
+        ParseMethod.DEVICE_MODEL,
+        version=device.model_version,
+        confidence=DEVICE_CONFIDENCE,
+    )
+    return payload, extracted
 
 
 async def parse_raw_event(

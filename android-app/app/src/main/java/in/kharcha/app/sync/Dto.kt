@@ -3,6 +3,7 @@ package `in`.kharcha.app.sync
 import `in`.kharcha.app.data.OutboxEvent
 import java.time.Instant
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 /**
  * Wire format of `POST /v1/events:batch` (PROJECT_SPEC §7.3, §9). Must match the backend's
@@ -28,7 +29,35 @@ data class RawEventPayloadDto(
     val postedAt: String,
     val deviceId: String,
     val redacted: Boolean,
+    val deviceParse: DeviceParseDto? = null,
 )
+
+/** Tier 2 result (PROJECT_SPEC §7.3 `deviceParse`). The server re-validates it. */
+@Serializable
+data class DeviceParseResultDto(
+    val amountPaise: Long,
+    val direction: String,
+    val channel: String,
+    val status: String,
+    val merchantRaw: String? = null,
+    val referenceId: String? = null,
+)
+
+@Serializable
+data class DeviceParseDto(val modelVersion: String, val result: DeviceParseResultDto, val latencyMs: Long)
+
+private val deviceJson = Json { ignoreUnknownKeys = true }
+
+fun decodeDeviceParse(stored: String?): DeviceParseDto? =
+    if (stored.isNullOrEmpty() || stored == "-") {
+        null
+    } else {
+        try {
+            deviceJson.decodeFromString(DeviceParseDto.serializer(), stored)
+        } catch (e: kotlinx.serialization.SerializationException) {
+            null
+        }
+    }
 
 @Serializable
 data class BatchResponseDto(val results: List<EventResultDto>)
@@ -139,6 +168,7 @@ fun OutboxEvent.toDto(deviceId: String): UploadEventDto {
             postedAt = posted,
             deviceId = deviceId,
             redacted = true, // only redacted text is ever stored in the outbox
+            deviceParse = decodeDeviceParse(deviceParseJson),
         ),
     )
 }

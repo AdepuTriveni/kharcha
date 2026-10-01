@@ -214,3 +214,16 @@ class AgentRunRow(Base):
     input_tokens: Mapped[int | None] = mapped_column(Integer)
     output_tokens: Mapped[int | None] = mapped_column(Integer)
     cost_micros: Mapped[int | None] = mapped_column(BigInteger, server_default="0")
+
+
+class ModelVersion(Base):
+    __tablename__ = "model_versions"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    kind: Mapped[str] = mapped_column(Text)  # PARSER|RISK|EMBEDDING
+    base_model: Mapped[str | None] = mapped_column(Text)
+    artifact_uri: Mapped[str] = mapped_column(Text)
+    sha256: Mapped[str] = mapped_column(Text)
+    eval_report: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    status: Mapped[str] = mapped_column(Text)  # CANDIDATE|SHADOW|ACTIVE|RETIRED
+    created_at: Mapped[datetime] = mapped_column(TZ, server_default="now()")

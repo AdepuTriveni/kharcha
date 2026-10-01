@@ -22,9 +22,13 @@ def test_android_fixture_is_valid_upload() -> None:
     batch = BatchRequest.model_validate(json.loads(FIXTURE.read_text(encoding="utf-8")))
     now = datetime(2026, 10, 3, 14, 0, tzinfo=UTC)
     events = [UploadEvent.model_validate(raw) for raw in batch.events]
-    assert [e.type.value for e in events] == ["RAW_NOTIFICATION", "RAW_SMS"]
+    assert [e.type.value for e in events] == ["RAW_NOTIFICATION", "RAW_SMS", "RAW_NOTIFICATION"]
     assert all(check_upload_rules(e, now) is None for e in events)
     assert events[1].payload.sender == "AX-HDFCBK"
+    device = events[2].payload.device_parse
+    assert device is not None
+    assert device.result.amount_paise == 8900
+    assert device.latency_ms == 820
 
 
 def test_android_categories_match_backend() -> None:

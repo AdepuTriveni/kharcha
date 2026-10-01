@@ -4,6 +4,9 @@
     uv run kharcha-admin link-code --user u_1234abcd
     uv run kharcha-admin seed-merchants
     uv run kharcha-admin export-labeling --out ../ml/data/raw/events.jsonl
+    uv run kharcha-admin register-model ../ml/exports/v1/manifest.json \
+        --eval ../ml/reports/v1/eval_report.json --url https://host/kharcha-parser-v1.gguf
+    uv run kharcha-admin promote-model parser-v1-q4_k_m --to SHADOW
 
 Prints the key once (put it in the app) and the settings entry for the server.
 """
@@ -14,10 +17,12 @@ import json
 import secrets
 import sys
 from pathlib import Path
+from typing import Any
 
 from redis.asyncio import Redis
 from sqlalchemy.dialects.postgresql import insert
 
+from kharcha_common import model_registry
 from kharcha_common.db import make_engine, make_sessionmaker
 from kharcha_common.db.models import User
 from kharcha_common.linking import create_link_code
@@ -56,6 +61,24 @@ async def export_labeling(out: Path) -> int:
         await engine.dispose()
 
 
+async def register_model(manifest: dict[str, Any], report: dict[str, Any], url: str) -> str:
+    engine = make_engine(get_settings())
+    try:
+        async with make_sessionmaker(engine).begin() as session:
+            return await model_registry.register(session, manifest, url, report)
+    finally:
+        await engine.dispose()
+
+
+async def promote_model(model_id: str, to: str) -> None:
+    engine = make_engine(get_settings())
+    try:
+        async with make_sessionmaker(engine).begin() as session:
+            await model_registry.promote(session, model_id, model_registry.ModelStatus(to))
+    finally:
+        await engine.dispose()
+
+
 async def link_code(user_id: str) -> str:
     redis = Redis.from_url(get_settings().redis_url, decode_responses=True)
     try:
@@ -75,7 +98,29 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("seed-merchants", help="load backend/seeds/seed-merchants.yaml")
     export = sub.add_parser("export-labeling", help="consenting users' events for labeling")
     export.add_argument("--out", type=Path, default=Path("../ml/data/raw/events.jsonl"))
+    reg = sub.add_parser("register-model", help="add a parser model as CANDIDATE")
+    reg.add_argument("manifest", type=Path)
+    reg.add_argument("--eval", type=Path, required=True, dest="report")
+    reg.add_argument("--url", required=True, help="download URL of the GGUF file")
+    pro = sub.add_parser("promote-model", help="CANDIDATE -> SHADOW -> ACTIVE (gate required)")
+    pro.add_argument("model_id")
+    pro.add_argument("--to", choices=["SHADOW", "ACTIVE", "RETIRED"], required=True)
     args = parser.parse_args(argv)
+
+    if args.command == "register-model":
+        manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
+        report = json.loads(args.report.read_text(encoding="utf-8"))
+        model_id = asyncio.run(register_model(manifest, report, args.url))
+        sys.stdout.write(f"registered {model_id} as CANDIDATE\n")
+        return 0
+    if args.command == "promote-model":
+        try:
+            asyncio.run(promote_model(args.model_id, args.to))
+        except model_registry.PromotionError as exc:
+            sys.stderr.write(f"refused: {exc}\n")
+            return 1
+        sys.stdout.write(f"{args.model_id} is now {args.to}\n")
+        return 0
 
     if args.command == "export-labeling":
         count = asyncio.run(export_labeling(args.out))

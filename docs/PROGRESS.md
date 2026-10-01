@@ -87,7 +87,17 @@
         `kharcha-dataset synth|distill|build`, `ml/data/DATASET_CARD.md`; leakage test in pytest
   - [ ] real data: export (consent) -> distill -> review queue with `kharcha-label` -> rebuild
 - [ ] W11 Base-model comparison, LoRA fine-tune, five-way eval report
+  - [x] code: `kharcha_ml.finetune.train` (LoRA r16/a32, completion-only loss, canonical JSON target,
+        gold refused), Kaggle/Colab notebook, `kharcha-ml-eval` five-way report + promotion gate
+  - [ ] YOU: run `ml/notebooks/finetune_parser.ipynb` on a free GPU, then the eval with Ollama
 - [ ] W12 GGUF + quantization, Ollama tier 3, Android llama.cpp + constrained decoding, shadow rollout
+  - [x] `kharcha-export` (merge LoRA, GGUF, Q4_K_M, sha256, Modelfile, manifest); model registry with
+        gate-enforced promotion + rollback, `GET /v1/models/parser/latest`; processor tiers 2 (device,
+        re-validated) and 3 (own model ACTIVE or SHADOW -> `model-shadow`)
+  - [x] Android: model manager (Wi-Fi + charging, RAM threshold, sha256), on-device parser with the
+        GBNF grammar (tested against every training target) and a 5 s budget, Room v2 deviceParse,
+        llama.cpp JNI module (opt-in: `-Pkharcha.llama=true -Pllama.dir=...`)
+  - [ ] YOU: install the NDK + clone llama.cpp, build with the flag, measure latency/RAM on the phone
 - [ ] ✅ Model passes promotion gate and runs on phone
 
 ## Phase 5 — Multi-agent + MCP + memory (Pillars 2 & 5)

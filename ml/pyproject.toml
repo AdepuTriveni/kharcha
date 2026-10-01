@@ -9,9 +9,22 @@ dependencies = [
     "httpx>=0.28",
 ]
 
+[project.optional-dependencies]
+# GPU training and export (Kaggle/Colab): uv sync --extra train
+train = [
+    "torch>=2.4",
+    "transformers>=4.46",
+    "peft>=0.13",
+    "trl>=0.12",
+    "datasets>=3.0",
+    "accelerate>=1.0",
+]
+
 [project.scripts]
 kharcha-label = "kharcha_ml.dataset.label_cli:run"
 kharcha-dataset = "kharcha_ml.dataset.build_cli:run"
+kharcha-ml-eval = "kharcha_ml.eval.parser:run"
+kharcha-export = "kharcha_ml.export.gguf:run"
 
 [dependency-groups]
 dev = [
@@ -37,10 +50,17 @@ select = ["E", "W", "F", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
 
 [tool.ruff.lint.per-file-ignores]
 "src/kharcha_ml/dataset/synthetic.py" = ["E501"]  # message templates read better on one line
+"src/kharcha_ml/eval/parser.py" = ["E501"]
+"src/kharcha_ml/export/gguf.py" = ["E501"]
+"src/kharcha_ml/finetune/train.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"
 strict = true
+
+[[tool.mypy.overrides]]
+module = ["torch.*", "transformers.*", "peft.*", "trl.*", "datasets.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 addopts = "--import-mode=importlib --strict-markers"

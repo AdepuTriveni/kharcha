@@ -1,5 +1,6 @@
 package `in`.kharcha.app.data
 
+import androidx.room.AutoMigration
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Entity
@@ -35,6 +36,8 @@ data class OutboxEvent(
     val status: String,
     val attempts: Int = 0,
     val lastError: String? = null,
+    /** On-device model result as JSON (tier 2), "-" when the model ran and gave nothing. */
+    val deviceParseJson: String? = null,
 )
 
 @Dao
@@ -61,12 +64,26 @@ interface OutboxDao {
     @Query("SELECT * FROM outbox_events WHERE eventId = :eventId")
     suspend fun get(eventId: String): OutboxEvent?
 
+    @Query(
+        "SELECT * FROM outbox_events WHERE status = 'PENDING' AND deviceParseJson IS NULL " +
+            "AND type IN ('RAW_NOTIFICATION', 'RAW_SMS') ORDER BY postedAtMs LIMIT :limit",
+    )
+    suspend fun pendingWithoutDeviceParse(limit: Int): List<OutboxEvent>
+
+    @Query("UPDATE outbox_events SET deviceParseJson = :json WHERE eventId = :eventId")
+    suspend fun setDeviceParse(eventId: String, json: String)
+
     /** Undo before upload. Returns 1 if the event was still waiting and is now gone. */
     @Query("DELETE FROM outbox_events WHERE eventId = :eventId AND status = 'PENDING'")
     suspend fun deleteIfPending(eventId: String): Int
 }
 
-@Database(entities = [OutboxEvent::class], version = 1, exportSchema = true)
+@Database(
+    entities = [OutboxEvent::class],
+    version = 2,
+    exportSchema = true,
+    autoMigrations = [AutoMigration(from = 1, to = 2)],
+)
 abstract class KharchaDatabase : RoomDatabase() {
     abstract fun outbox(): OutboxDao
 }

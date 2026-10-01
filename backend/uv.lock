@@ -1085,16 +1085,28 @@ name = "kharcha-ml"
 version = "0.1.0"
 source = { editable = "../ml" }
 dependencies = [
+    { name = "httpx" },
     { name = "pydantic" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pydantic", specifier = ">=2.10" }]
+requires-dist = [
+    { name = "accelerate", marker = "extra == 'train'", specifier = ">=1.0" },
+    { name = "datasets", marker = "extra == 'train'", specifier = ">=3.0" },
+    { name = "httpx", specifier = ">=0.28" },
+    { name = "peft", marker = "extra == 'train'", specifier = ">=0.13" },
+    { name = "pydantic", specifier = ">=2.10" },
+    { name = "torch", marker = "extra == 'train'", specifier = ">=2.4" },
+    { name = "transformers", marker = "extra == 'train'", specifier = ">=4.46" },
+    { name = "trl", marker = "extra == 'train'", specifier = ">=0.12" },
+]
+provides-extras = ["train"]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "mypy", specifier = ">=1.13" },
     { name = "pytest", specifier = ">=8.3" },
+    { name = "pytest-asyncio", specifier = ">=0.25" },
     { name = "ruff", specifier = ">=0.8" },
 ]
 

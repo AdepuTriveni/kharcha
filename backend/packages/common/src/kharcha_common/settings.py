@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     # Parser (§10.4-10.5): share of rule-parsed events also sent to the teacher, and synthesis.
     parser_shadow_rate: float = Field(default=0.1, ge=0.0, le=1.0)
     rule_synthesis_enabled: bool = True
+    # Tier 3 (§15.6-15.7): our own model served by Ollama, e.g. "ollama/kharcha-parser:v1".
+    # SHADOW runs it next to the teacher on sampled events; ACTIVE answers before the teacher.
+    server_model: str | None = None
+    server_model_mode: Literal["SHADOW", "ACTIVE"] = "SHADOW"
 
     # Phase 1 auth: static per-user API keys, stored as {sha256(key) hex: user_id}.
     # Generate with `uv run kharcha-admin create-user`. Replaced by Firebase in W9.

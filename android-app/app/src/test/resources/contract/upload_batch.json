@@ -11,7 +11,8 @@
         "text": "Paid Rs.349.00 to zomato@hdfcbank from A/c XX1234. UPI Ref 412345678901",
         "postedAt": "2026-10-03T13:45:12Z",
         "deviceId": "d_91ab",
-        "redacted": true
+        "redacted": true,
+        "deviceParse": null
       }
     },
     {
@@ -25,7 +26,34 @@
         "text": "Rs 500 debited from A/c XX1234. Ref No 412345678902",
         "postedAt": "2026-10-03T13:46:00.500Z",
         "deviceId": "d_91ab",
-        "redacted": true
+        "redacted": true,
+        "deviceParse": null
+      }
+    },
+    {
+      "eventId": "0192a0b4-2d42-7abc-8def-0123456789ad",
+      "type": "RAW_NOTIFICATION",
+      "occurredAt": "2026-10-03T13:47:00Z",
+      "payload": {
+        "sourceApp": "com.phonepe.app",
+        "sender": null,
+        "title": "Paid",
+        "text": "Paid Rs.89 to BLINKIT via Paytm UPI. Ref: 512300011122",
+        "postedAt": "2026-10-03T13:47:00Z",
+        "deviceId": "d_91ab",
+        "redacted": true,
+        "deviceParse": {
+          "modelVersion": "kharcha-parser-v1-q4_k_m",
+          "result": {
+            "amountPaise": 8900,
+            "direction": "DEBIT",
+            "channel": "UPI",
+            "status": "SUCCESS",
+            "merchantRaw": "BLINKIT",
+            "referenceId": "512300011122"
+          },
+          "latencyMs": 820
+        }
       }
     }
   ]

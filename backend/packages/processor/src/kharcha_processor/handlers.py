@@ -63,6 +63,8 @@ class ProcessorDeps:
     teacher: Extractor
     rule_writer: RuleWriter | None = None
     shadow_rate: float = 0.1
+    model: Extractor | None = None  # tier 3 own model
+    model_shadow: bool = True  # SHADOW until promoted (§15.7)
     cooldown: Cooldown = field(default_factory=Cooldown)
 
 
@@ -91,6 +93,8 @@ async def handle_raw_event(body: bytes, deps: ProcessorDeps) -> None:
             deps.teacher,
             rules,
             shadow=in_shadow_sample(event.event_id, deps.shadow_rate),
+            model=deps.model,
+            model_shadow=deps.model_shadow,
         )
         await _publish_parse(event, parse, deps)
     elif event.type in CASH_TEXT_TYPES:

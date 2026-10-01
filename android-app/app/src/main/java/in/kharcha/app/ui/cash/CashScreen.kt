@@ -40,25 +40,14 @@ import `in`.kharcha.app.cash.UndoResult
 import `in`.kharcha.app.data.SettingsRepository
 import `in`.kharcha.app.sync.ApiClient
 import `in`.kharcha.app.sync.ApiResult
-import java.math.BigDecimal
+import `in`.kharcha.app.util.Money
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 /** Parses what the user typed ("150", "150.5", "1,200") into paise; null if invalid. */
-fun parseRupeesToPaise(input: String): Long? {
-    val cleaned = input.replace(",", "").replace("₹", "").trim()
-    if (cleaned.isEmpty()) return null
-    return try {
-        val paise = BigDecimal(cleaned).movePointRight(2)
-        if (paise.signum() <= 0 || paise.stripTrailingZeros().scale() > 0) null else paise.longValueExact()
-    } catch (e: NumberFormatException) {
-        null
-    } catch (e: ArithmeticException) {
-        null
-    }
-}
+fun parseRupeesToPaise(input: String): Long? = Money.parseRupees(input)
 
 @HiltViewModel
 class CashViewModel @Inject constructor(

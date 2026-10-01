@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
+import `in`.kharcha.app.llm.ModelScheduler
 import `in`.kharcha.app.sync.SyncScheduler
 import javax.inject.Inject
 
@@ -11,6 +12,7 @@ import javax.inject.Inject
 class KharchaApp : Application(), Configuration.Provider {
     @Inject lateinit var workerFactory: HiltWorkerFactory
     @Inject lateinit var syncScheduler: SyncScheduler
+    @Inject lateinit var modelScheduler: ModelScheduler
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder().setWorkerFactory(workerFactory).build()
@@ -18,5 +20,6 @@ class KharchaApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         syncScheduler.schedulePeriodic()
+        modelScheduler.scheduleDaily()
     }
 }

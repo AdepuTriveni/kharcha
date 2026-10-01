@@ -2,6 +2,7 @@ package `in`.kharcha.app.di
 
 import android.content.Context
 import androidx.room.Room
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -9,6 +10,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import `in`.kharcha.app.data.KharchaDatabase
 import `in`.kharcha.app.data.OutboxDao
+import `in`.kharcha.app.llm.LlamaOnDeviceParser
+import `in`.kharcha.app.llm.OnDeviceParser
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
@@ -35,4 +38,11 @@ object AppModule {
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class ParserModule {
+    @Binds
+    abstract fun onDeviceParser(impl: LlamaOnDeviceParser): OnDeviceParser
 }

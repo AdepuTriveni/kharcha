@@ -10,7 +10,7 @@ from prometheus_client import start_http_server
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from kharcha_common.db import make_engine, make_sessionmaker
-from kharcha_common.events import AgentTaskEvent, CleanTransactionEvent
+from kharcha_common.events import AgentTaskEvent, AgentTrigger, CleanTransactionEvent, Priority
 from kharcha_common.idempotency import is_processed, mark_processed
 from kharcha_common.kafka import (
     BrokerPublisher,
@@ -23,7 +23,8 @@ from kharcha_common.logging import configure_logging
 from kharcha_common.settings import Settings, get_settings
 from kharcha_common.time import utcnow
 from kharcha_common.topics import Topic
-from kharcha_insights.triggers import tasks_for, to_payload
+from kharcha_insights.forecast.service import Movement, refresh_if_due
+from kharcha_insights.triggers import TaskSpec, tasks_for, to_payload
 
 TRIGGERS_CONSUMER = "insights.triggers"
 AGENT_TASK_TYPE = "AGENT_TASK"
@@ -42,6 +43,10 @@ async def handle_clean_transaction(body: bytes, deps: InsightsDeps) -> None:
             return
         specs = await tasks_for(session, event.user_id, event.payload)
     now = utcnow()
+    async with deps.sessions.begin() as session:
+        movement = await refresh_if_due(session, event.user_id, now)
+    if movement is not None:
+        specs.append(broke_date_task(movement))
     for spec in specs:
         payload = to_payload(spec, event.user_id, now)
         await deps.publisher.publish_event(
@@ -58,6 +63,21 @@ async def handle_clean_transaction(body: bytes, deps: InsightsDeps) -> None:
         )
     async with deps.sessions.begin() as session:
         await mark_processed(session, TRIGGERS_CONSUMER, event.event_id)
+
+
+def broke_date_task(movement: Movement) -> TaskSpec:
+    new = movement.new_p50.isoformat()
+    return TaskSpec(
+        trigger=AgentTrigger.BROKE_DATE_MOVED,
+        goal=f"Broke date moved {movement.days_earlier} days earlier, to around {new}",
+        refs={
+            "forecastId": movement.stored.id,
+            "brokeP50": new,
+            "previousP50": movement.previous_p50.isoformat() if movement.previous_p50 else None,
+        },
+        dedupe_key=f"broke:{new}",
+        priority=Priority.HIGH,
+    )
 
 
 def build_broker(settings: Settings) -> KafkaBroker:

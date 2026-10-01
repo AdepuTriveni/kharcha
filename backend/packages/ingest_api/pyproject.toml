@@ -5,6 +5,7 @@ description = "Kharcha ingest API (phone uploads, Ask, bill photos, settings)"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "kharcha-common",
+    "kharcha-insights",
     "fastapi>=0.115",
     "uvicorn[standard]>=0.34",
     "prometheus-client>=0.21",
@@ -17,6 +18,7 @@ kharcha-admin = "kharcha_ingest.admin:run"
 
 [tool.uv.sources]
 kharcha-common = { workspace = true }
+kharcha-insights = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

@@ -6,6 +6,7 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
     "kharcha-common",
     "kharcha-processor",
+    "kharcha-insights",
     # Shared parsing metrics (§15.5). kharcha-ml keeps heavy training deps optional.
     "kharcha-ml",
     "typer>=0.15",
@@ -17,6 +18,7 @@ kharcha-eval = "kharcha_agents.evals.cli:run"
 [tool.uv.sources]
 kharcha-common = { workspace = true }
 kharcha-processor = { workspace = true }
+kharcha-insights = { workspace = true }
 kharcha-ml = { path = "../../../ml", editable = true }
 
 [build-system]

@@ -5,6 +5,7 @@ description = "Kharcha insights: triggers (W3), forecast (W7), risk scoring and 
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "kharcha-common",
+    "numpy>=2.1",
 ]
 
 [project.scripts]

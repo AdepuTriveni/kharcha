@@ -19,7 +19,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from kharcha_common.categories import Category
-from kharcha_common.db.models import AlertSent, Budget, TransactionRow, User
+from kharcha_common.db.models import AlertSent, Budget, ForecastRow, TransactionRow, User
 from kharcha_common.events import AgentName, AgentTaskEvent, AgentTrigger, TxnKind, TxnStatus
 from kharcha_common.grounding import allowed_values, check_grounding
 from kharcha_common.money import format_inr
@@ -88,6 +88,11 @@ class LiteLLMTextModel:
 
 def plain_text(facts: Facts) -> str:
     amount = format_inr(facts.amount_paise)
+    if facts.kind is AgentTrigger.BROKE_DATE_MOVED:
+        return (
+            f"Heads up: at this pace your money runs out around {facts.subject} "
+            f"(about {facts.count} days). You have {amount} now, cash included."
+        )
     if facts.kind is AgentTrigger.FREQUENCY:
         return (
             f"{facts.subject}: {facts.count} payments in the last 7 days, {amount} in total. "
@@ -121,6 +126,20 @@ async def _facts(session: AsyncSession, event: AgentTaskEvent) -> Facts | None:
         raw_category = refs.get("category")
         category = Category(raw_category) if raw_category else None
         return Facts(AgentTrigger.FREQUENCY, category, merchant, int(total), count=int(count))
+    if task.trigger is AgentTrigger.BROKE_DATE_MOVED and refs.get("forecastId"):
+        row = await session.get(ForecastRow, str(refs["forecastId"]))
+        if row is None or row.user_id != event.user_id or row.broke_p50 is None:
+            return None
+        days = (row.broke_p50 - to_ist(now).date()).days
+        if days < 0:
+            return None
+        return Facts(
+            AgentTrigger.BROKE_DATE_MOVED,
+            None,
+            f"{row.broke_p50.day} {row.broke_p50:%b}",
+            row.balance_now_paise,
+            count=days,
+        )
     if task.trigger is AgentTrigger.BUDGET and refs.get("category"):
         category = Category(str(refs["category"]))
         limit = (
@@ -189,8 +208,9 @@ async def handle_agent_task(
         return
 
     level = RoastLevel(user.roast_level)
+    is_broke = facts.kind is AgentTrigger.BROKE_DATE_MOVED
     verdict = decide(
-        kind=AlertKind.ROAST,
+        kind=AlertKind.NUDGE if is_broke else AlertKind.ROAST,
         now=now,
         roast_level=level,
         quiet_start=user.quiet_start,
@@ -199,9 +219,12 @@ async def handle_agent_task(
         category=facts.category,
     )
     alert_id = "a_" + uuid.uuid4().hex
-    kind = AlertKind.ROAST if verdict.decision is Decision.SEND else AlertKind.NUDGE
+    roast = verdict.decision is Decision.SEND and not is_broke
+    kind = AlertKind.ROAST if roast else AlertKind.NUDGE
     text = ""
-    if verdict.decision is Decision.SEND:
+    if is_broke and verdict.decision is not Decision.SUPPRESS:
+        text = plain_text(facts)  # dates and money are never left to the model
+    elif verdict.decision is Decision.SEND:
         text = await compose(model, load_prompt("coach", "v0"), level, facts)
     elif verdict.decision is Decision.SEND_PLAIN:
         text = plain_text(facts)

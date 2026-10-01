@@ -1,7 +1,8 @@
 """``kharcha-eval`` (PROJECT_SPEC §27.2). Each suite writes JSON + Markdown and an eval_runs row.
 
-uv run kharcha-eval parsing ../ml/data/samples/parsing_sample.jsonl
+uv run kharcha-eval parsing ../ml/data/samples/parsing_sample.jsonl --parser rules
 uv run kharcha-eval parsing ../ml/data/labels/gold_test.jsonl --model ollama/qwen2.5:7b
+uv run kharcha-eval forecast --cases 200
 """
 
 import asyncio
@@ -20,6 +21,7 @@ from kharcha_common.db import make_engine, make_sessionmaker
 from kharcha_common.db.models import EvalRun
 from kharcha_common.ids import uuid7
 from kharcha_common.settings import Settings, get_settings
+from kharcha_insights.forecast.backtest import run_backtest, synthetic_cases
 from kharcha_ml.dataset.labels import read_jsonl
 from kharcha_processor.rules import CompiledRule
 from kharcha_processor.teacher import Extractor, TeacherLLM
@@ -130,9 +132,39 @@ def agents() -> None:
 
 
 @app.command()
-def forecast() -> None:
-    """Broke-date forecast backtest (W7)."""
-    raise typer.Exit(_not_yet("forecast", "W7"))
+def forecast(
+    cases: Annotated[int, typer.Option(help="synthetic personas")] = 200,
+    seed: Annotated[int, typer.Option(help="cohort seed")] = 7,
+    out_dir: Annotated[Path, typer.Option(help="report directory")] = Path("reports/forecast"),
+    record: Annotated[bool, typer.Option(help="write a row to eval_runs")] = True,
+) -> None:
+    """Broke-date backtest (§14): ±3-day accuracy and MAE on a synthetic cohort."""
+    report = run_backtest(synthetic_cases(cases, seed=seed))
+    metrics: dict[str, Any] = {"dataset": f"synthetic-{cases}-seed{seed}", **report.to_dict()}
+    md = "\n".join(
+        [
+            f"# Forecast backtest: {metrics['dataset']}",
+            "",
+            "| Metric | Value |",
+            "|---|---|",
+            f"| Cases | {report.cases} |",
+            f"| Cases that went broke within 45 days | {report.broke_cases} |",
+            f"| ±3-day accuracy (p50) | {report.accuracy_3d:.3f} |",
+            f"| MAE (days) | {report.mae_days:.2f} |",
+            f"| Broke / not broke agreement | {report.detection_agreement:.3f} |",
+            "",
+        ]
+    )
+    stem = f"forecast-{datetime.now(UTC):%Y%m%dT%H%M%SZ}"
+    path = write_reports(out_dir, stem, metrics, md)
+    typer.echo(md)
+    if record:
+        try:
+            run_id = asyncio.run(record_run(get_settings(), "FORECAST", "forecast/v1", metrics))
+            typer.echo(f"eval_runs row {run_id}")
+        except (OSError, SQLAlchemyError) as exc:
+            typer.echo(f"warning: eval_runs not written ({type(exc).__name__})", err=True)
+    typer.echo(f"report: {path}")
 
 
 def _not_yet(suite: str, week: str) -> int:

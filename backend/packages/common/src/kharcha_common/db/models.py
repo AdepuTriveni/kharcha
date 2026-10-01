@@ -1,10 +1,10 @@
 """ORM models for tables created by Alembic. Keep in sync with migrations (a test checks)."""
 
 import uuid
-from datetime import datetime, time
+from datetime import date, datetime, time
 from typing import Any
 
-from sqlalchemy import BigInteger, Boolean, ForeignKey, Integer, Text, Time
+from sqlalchemy import BigInteger, Boolean, Date, ForeignKey, Integer, Text, Time
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -174,3 +174,17 @@ class UserMerchantOverride(Base):
     category: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(TZ, server_default="now()")
     updated_at: Mapped[datetime] = mapped_column(TZ, server_default="now()")
+
+
+class ForecastRow(Base):
+    __tablename__ = "forecasts"
+
+    id: Mapped[str] = mapped_column(Text, primary_key=True)
+    user_id: Mapped[str] = mapped_column(Text, ForeignKey("users.id"))
+    computed_at: Mapped[datetime] = mapped_column(TZ)
+    balance_now_paise: Mapped[int] = mapped_column(BigInteger)
+    broke_p20: Mapped[date | None] = mapped_column(Date)
+    broke_p50: Mapped[date | None] = mapped_column(Date)
+    broke_p80: Mapped[date | None] = mapped_column(Date)
+    horizon_days: Mapped[int] = mapped_column(Integer)
+    inputs: Mapped[dict[str, Any]] = mapped_column(JSONB)
